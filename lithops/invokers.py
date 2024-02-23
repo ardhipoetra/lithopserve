@@ -476,7 +476,8 @@ def extend_runtime(job, compute_handler, internal_storage):
     """
 
     base_docker_image = job.runtime_name
-    uuid = job.ext_runtime_uuid
+    # uuid = job.ext_runtime_uuid
+    uuid = 'ext'
     ext_runtime_name = f'{base_docker_image.split(":")[0]}:{uuid}'
 
     # update job with new extended runtime name
@@ -486,6 +487,8 @@ def extend_runtime(job, compute_handler, internal_storage):
     runtime_meta = internal_storage.get_runtime_meta(runtime_key)
 
     if not runtime_meta:
+        logger.info(f'Creating runtime: {ext_runtime_name}, memory: {job.runtime_memory}MB')
+
         ext_docker_file = '/'.join([job.local_tmp_dir, "Dockerfile"])
 
         # Generate Dockerfile extended with function dependencies and function

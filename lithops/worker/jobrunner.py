@@ -27,7 +27,7 @@ import requests
 import traceback
 from pydoc import locate
 from distutils.util import strtobool
-
+from lithops.serverless.included_function.function import default_function
 from lithops.worker.utils import peak_memory
 
 try:
@@ -230,6 +230,8 @@ class JobRunner:
                     ('function_name', fn_name or 'undefined')
                 )
             )
+            if self.job.config['lithops'].get('runtime_include_function'):
+                data['installed_function'] = default_function
 
             logger.info(f"Going to execute '{str(fn_name)}()'")
             print('---------------------- FUNCTION LOG ----------------------')

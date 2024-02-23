@@ -550,7 +550,23 @@ class AWSLambdaBackend:
         logger.info(f'Deleting lambda runtime: {runtime_name} - {runtime_memory}MB')
         func_name = self._format_function_name(runtime_name, runtime_memory, version)
 
-        self._delete_function(func_name)
+        try:
+            self._delete_function(func_name)
+        except Exception as e:
+            logger.debug(e)
+        runtime_key = self.get_runtime_key(runtime_name, runtime_memory, __version__)
+        self.internal_storage.delete_runtime_meta(runtime_key)
+
+        # Also delete all the runtimes that were extended from this runtime
+        if self.lambda_config.get('runtime_include_function', True):
+            logger.info(f'Deleting lambda extended runtime: {runtime_name} - {runtime_memory}MB')
+            func_name = self._format_function_name(runtime_name+':ext', runtime_memory, version)
+            try:
+                self._delete_function(func_name)
+            except Exception as e:
+                logger.debug(e)
+            runtime_key = self.get_runtime_key(runtime_name+':ext', runtime_memory, __version__)
+            self.internal_storage.delete_runtime_meta(runtime_key)
 
         if not self._is_container_runtime(runtime_name):
             layer = self._format_layer_name(runtime_name, version)
@@ -668,6 +684,43 @@ class AWSLambdaBackend:
         #         raise Exception('Lithops Runtime: {} not deployed'.format(runtime_name))
         #     else:
         #         raise Exception(response)
+
+
+    def invoke_sync(self, runtime_name, runtime_memory, payload):
+        """
+        Invoke lambda function asynchronously
+        @param runtime_name: name of the runtime
+        @param runtime_memory: memory of the runtime in MB
+        @param payload: invoke dict payload
+        @return: invocation ID
+        """
+        # print("Starting invocation", payload)
+        function_name = self._format_function_name(runtime_name, runtime_memory)
+        payload['sync_invoker'] = True
+        # return None
+        # Save payload into json file
+        payload = json.dumps(payload, default=str)
+        print("Payload", payload)
+        try:
+            response = self.lambda_client.invoke(
+                FunctionName=function_name,
+                Payload=payload
+            )
+            if response['StatusCode'] == 200:
+                return json.loads(response['Payload'].read().decode('utf-8'))
+            else:
+                logger.debug(response)
+                if response['ResponseMetadata']['HTTPStatusCode'] == 401:
+                    raise Exception('Unauthorized - Invalid API Key')
+                elif response['ResponseMetadata']['HTTPStatusCode'] == 404:
+                    raise Exception('Lithops Runtime: {} not deployed'.format(runtime_name))
+                else:
+                    raise Exception(response)
+        except Exception as e:
+            # Reached the maximum number of attempts, raise an exception or perform any other action
+            raise Exception(f"Failed to invoke function: {e}")
+
+
 
     def get_runtime_key(self, runtime_name, runtime_memory, version=__version__):
         """

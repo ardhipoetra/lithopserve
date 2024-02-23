@@ -18,26 +18,28 @@
 import os
 import sys
 import logging
+import copy
+import time
 import atexit
 import pickle
 import tempfile
 import subprocess as sp
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, List, Union, Tuple, Dict, Any
 from collections.abc import Callable
 from datetime import datetime
-
+from lithops.job.job_installed_function import job_installed_function
 from lithops import constants
 from lithops.future import ResponseFuture
-from lithops.invokers import create_invoker
+from lithops.invokers import create_invoker, extend_runtime
 from lithops.storage import InternalStorage
 from lithops.wait import wait, ALL_COMPLETED, THREADPOOL_SIZE, WAIT_DUR_SEC, ALWAYS
 from lithops.job import create_map_job, create_reduce_job
 from lithops.config import default_config, \
     extract_localhost_config, extract_standalone_config, \
     extract_serverless_config, get_log_info, extract_storage_config
-from lithops.constants import LOCALHOST, CLEANER_DIR, \
-    SERVERLESS, STANDALONE
-from lithops.utils import setup_lithops_logger, \
+from lithops.constants import LOCALHOST, CLEANER_DIR, SERVERLESS, STANDALONE
+from lithops.utils import is_notebook, setup_lithops_logger, \
     is_lithops_worker, create_executor_id, create_futures_list
 from lithops.localhost import LocalhostHandler, LocalhostHandlerV2
 from lithops.standalone import StandaloneHandler
@@ -159,6 +161,9 @@ class FunctionExecutor:
         self.invoker.stop()
         self.compute_handler.clear()
 
+    def close(self):
+        self.compute_handler.close()
+
     def _create_job_id(self, call_type):
         job_id = str(self.total_jobs).zfill(3)
         self.total_jobs += 1
@@ -166,8 +171,8 @@ class FunctionExecutor:
 
     def call_async(
         self,
-        func: Callable,
         data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]],
+        func: Optional[Callable] = job_installed_function,
         extra_env: Optional[Dict] = None,
         runtime_memory: Optional[int] = None,
         timeout: Optional[int] = None,
@@ -196,6 +201,7 @@ class FunctionExecutor:
                              internal_storage=self.internal_storage,
                              executor_id=self.executor_id,
                              job_id=job_id,
+                             async_job=True,
                              map_function=func,
                              iterdata=[data],
                              runtime_meta=runtime_meta,
@@ -210,10 +216,10 @@ class FunctionExecutor:
 
         return futures[0]
 
-    def map(
+    def map_async(
         self,
-        map_function: Callable,
         map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]],
+        map_function: Optional[Callable] = job_installed_function,
         chunksize: Optional[int] = None,
         extra_args: Optional[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
         extra_env: Optional[Dict[str, str]] = None,
@@ -258,6 +264,7 @@ class FunctionExecutor:
             internal_storage=self.internal_storage,
             executor_id=self.executor_id,
             job_id=job_id,
+            async_job=True,
             map_function=map_function,
             iterdata=map_iterdata,
             chunksize=chunksize,
@@ -281,6 +288,157 @@ class FunctionExecutor:
                 fut._produce_output = False
 
         return create_futures_list(futures, self)
+
+    def call_sync(
+            self,
+            data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]],
+            extra_env: Optional[Dict] = None,
+            runtime_memory: Optional[int] = None,
+            timeout: Optional[int] = None,
+            include_modules: Optional[List] = [],
+            exclude_modules: Optional[List] = []
+    ) -> ResponseFuture:
+        """
+        For running one function execution asynchronously.
+
+        :param func: The function to map over the data.
+        :param data: Input data. Arguments can be passed as a list or tuple, or as a dictionary for keyword arguments.
+        :param extra_env: Additional env variables for function environment.
+        :param runtime_memory: Memory to use to run the function.
+        :param timeout: Time that the function has to complete its execution before raising a timeout.
+        :param include_modules: Explicitly pickle these dependencies.
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
+
+        :return: Response future.
+        """
+        job_id = self._create_job_id('A')
+        self.last_call = 'call_async'
+
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+        job = create_map_job(config=self.config,
+                             internal_storage=self.internal_storage,
+                             executor_id=self.executor_id,
+                             job_id=job_id,
+                             async_job=False,
+                             map_function=job_installed_function,
+                             iterdata=[data],
+                             runtime_meta=runtime_meta,
+                             runtime_memory=runtime_memory,
+                             extra_env=extra_env,
+                             include_modules=include_modules,
+                             exclude_modules=exclude_modules,
+                             execution_timeout=timeout)
+        # job.func_key = "custom"
+        job.runtime_name = self.invoker.runtime_name
+        job.runtime_memory = self.invoker.runtime_info["runtime_memory"]
+        payload = self.invoker._create_payload(job)
+        payload['data_byte_strs'] = data
+
+        call_id = "{:05d}".format(0)
+        payload['call_id'] = call_id
+
+        logger.debug('ExecutorID {} | JobID {} - Customized runtime activated'
+                     .format(job.executor_id, job.job_id))
+        job.runtime_name = self.invoker.runtime_name
+        extend_runtime(job, self.invoker.compute_handler, self.invoker.internal_storage)
+        self.invoker.runtime_name = job.runtime_name
+
+        result = self.compute_handler.invoke_sync(payload)
+
+        return result
+
+    def map_sync(
+            self,
+            map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]],
+            force_cold: bool = False,
+            chunksize: Optional[int] = None,
+            extra_args: Optional[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
+            extra_env: Optional[Dict[str, str]] = None,
+            runtime_memory: Optional[int] = None,
+            obj_chunk_size: Optional[int] = None,
+            obj_chunk_number: Optional[int] = None,
+            obj_newline: Optional[str] = '\n',
+            timeout: Optional[int] = None,
+            include_modules: Optional[List[str]] = [],
+            exclude_modules: Optional[List[str]] = []
+    ):
+        job_id = self._create_job_id('M')
+        self.last_call = 'map'
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+
+        job = create_map_job(
+            config=self.config,
+            internal_storage=self.internal_storage,
+            executor_id=self.executor_id,
+            job_id=job_id,
+            async_job=False,
+            map_function=job_installed_function,
+            iterdata=map_iterdata,
+            chunksize=chunksize,
+            runtime_meta=runtime_meta,
+            runtime_memory=runtime_memory,
+            extra_env=extra_env,
+            include_modules=include_modules,
+            exclude_modules=exclude_modules,
+            execution_timeout=timeout,
+            extra_args=extra_args,
+            obj_chunk_size=obj_chunk_size,
+            obj_chunk_number=obj_chunk_number,
+            obj_newline=obj_newline
+        )
+        job.func_key = "custom"
+        job.runtime_name = self.invoker.runtime_name
+        job.runtime_memory = self.invoker.runtime_info["runtime_memory"]
+        payload_default = self.invoker._create_payload(job)
+        payloads = []
+        for payload in map_iterdata:
+            tmp_payload = copy.deepcopy(payload_default)
+            tmp_payload['data_byte_strs'] = payload
+            payloads.append(tmp_payload)
+
+
+
+        starttimes = [None for _ in range(len(payloads))]
+        endtimes = [None for _ in range(len(payloads))]
+        difftimes = [None for _ in range(len(payloads))]
+        results = [None for _ in range(len(payloads))]
+        numbers = range(len(payloads))
+
+        if force_cold:
+            self.compute_handler.force_cold(payload_default)
+
+        def invokator(payload, number):
+            # time.sleep(1)
+            start = time.time()
+            call_id = "{:05d}".format(number)
+            payload['call_id'] = call_id
+            result = self.compute_handler.invoke_sync(payload)
+            end = time.time()
+            starttimes[number] = start
+            endtimes[number] = end
+            difftimes[number] = end - start
+            results[number] = result
+            return result
+
+        def general_executor(payloads, numbers):
+            print("Started")
+            payloads_with_numbers = zip(payloads, numbers)
+            # results = list(self.threadpool.map(lambda p: invokator(*p), payloads_with_numbers))
+            print("Calling ThreadPoolExecutor")
+            with ThreadPoolExecutor(max_workers=len(payloads)) as executor:
+                results = list(executor.map(lambda p: invokator(*p), payloads_with_numbers))
+            print("Finished")
+            return results
+
+        time_dict = {
+            "start": starttimes,
+            "end": endtimes,
+            "diff": difftimes
+        }
+        self.invoker.times= time_dict
+        general_executor(payloads, numbers)
+        return results
+
 
     def map_reduce(
         self,
