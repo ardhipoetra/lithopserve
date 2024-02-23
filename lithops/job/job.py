@@ -23,7 +23,7 @@ import inspect
 import pickle
 import logging
 from types import SimpleNamespace
-
+from lithops.job.job_installed_function import job_installed_function
 from lithops import utils
 from lithops.job.partitioner import create_partitions
 from lithops.storage.utils import create_func_key, create_data_key, \
@@ -56,7 +56,8 @@ def create_map_job(
     extra_args=None,
     obj_chunk_size=None,
     obj_newline='\n',
-    obj_chunk_number=None
+    obj_chunk_number=None,
+    async_job=True
 ):
     """
     Wrapper to create a map job. It integrates COS logic to process objects.
@@ -83,6 +84,7 @@ def create_map_job(
         internal_storage=internal_storage,
         executor_id=executor_id,
         job_id=job_id,
+        async_job=async_job,
         func=map_function,
         iterdata=map_iterdata,
         chunksize=chunksize,
@@ -163,6 +165,7 @@ def _create_job(
     internal_storage,
     executor_id,
     job_id,
+    async_job,
     func,
     iterdata,
     runtime_meta,
@@ -266,6 +269,8 @@ def _create_job(
 
     # Upload function and data
     upload_function = not config[backend].get("runtime_include_function", False)
+    if not async_job:
+        upload_function = False
     upload_data = any([(len(data_str) * job.chunksize) > MAX_DATA_IN_PAYLOAD for data_str in data_strs])
 
     # Upload function and modules

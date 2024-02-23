@@ -129,6 +129,7 @@ def python_queue_consumer(pid, work_queue, initializer=None, callback=None):
         task, call_id, data = event
         task.call_id = call_id
         task.data = data
+        task.pid = pid
 
         initializer(pid, task) if initializer is not None else None
 
@@ -204,14 +205,19 @@ def run_task(task):
         handler_conn, jobrunner_conn = Pipe()
         jobrunner = JobRunner(task, jobrunner_conn, internal_storage)
         logger.debug('Starting JobRunner process')
-        jrp = Process(target=jobrunner.run) if is_unix_system() else Thread(target=jobrunner.run)
+        if task.pid != 0:
+            jrp = Process(target=jobrunner.run) if is_unix_system() else Thread(target=jobrunner.run)
 
         process_id = os.getpid() if is_unix_system() else mp.current_process().pid
         sys_monitor = SystemMonitor(process_id)
         sys_monitor.start()
 
-        jrp.start()
-        jrp.join(task.execution_timeout)
+        if task.pid != 0:
+            jrp.start()
+            jrp.join(task.execution_timeout)
+        else:
+            jobrunner.run()
+            jrp = jobrunner
 
         sys_monitor.stop()
         logger.debug('JobRunner process finished')

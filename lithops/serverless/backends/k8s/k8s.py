@@ -25,6 +25,8 @@ import copy
 import time
 import yaml
 import urllib3
+import pickle
+
 from kubernetes import client, watch
 from kubernetes.config import load_kube_config, \
     load_incluster_config, list_kube_config_contexts, \
@@ -34,6 +36,7 @@ from kubernetes.client.rest import ApiException
 from lithops import utils
 from lithops.version import __version__
 from lithops.constants import COMPUTE_CLI_MSG, JOBS_PREFIX
+from lithops.job.job_installed_function import job_installed_function
 
 from . import config
 
@@ -124,10 +127,15 @@ class KubernetesBackend:
             self.name, self.k8s_config, 'lithops-kubernetes-default'
         )
 
-    def build_runtime(self, docker_image_name, dockerfile, extra_args=[]):
+    def build_runtime(self, docker_image_name, dockerfile, extra_args=[], included_function=job_installed_function):
         """
         Builds a new runtime from a Docker file and pushes it to the registry
         """
+        func_str = pickle.dumps(job_installed_function)
+        func_module_str = pickle.dumps({'func': func_str, 'module_data': {}}, -1)
+        with open('func.pickle', 'wb') as f:
+            f.write(func_module_str)
+
         logger.info(f'Building runtime {docker_image_name} from {dockerfile or "Dockerfile"}')
 
         docker_path = utils.get_docker_path()
@@ -307,14 +315,23 @@ class KubernetesBackend:
         logger.debug('Note that this backend does not manage runtimes')
         return []
 
+<<<<<<< HEAD:lithops/serverless/backends/k8s/k8s.py
     def _create_pod(self, pod, pod_name, cpu, memory):
         pod["metadata"]["name"] = f"lithops-pod-{pod_name}"
+=======
+    def _create_pod(self, pod, pod_name, cpu, memory, gpu=False):
+        pod["metadata"]["name"] = f"lithopserve-pod-{pod_name}"
+>>>>>>> 19910d0e... Avoid extended function:lithopserve/serverless/backends/k8s/k8s.py
         node_name = re.sub(r'-\d+$', '', pod_name)
         pod["spec"]["nodeName"] = node_name
         pod["spec"]["containers"][0]["image"] = self.image
         pod["spec"]["containers"][0]["resources"]["requests"]["cpu"] = str(cpu)
         pod["spec"]["containers"][0]["resources"]["requests"]["memory"] = memory
         pod["metadata"]["labels"] = {"app": "lithops-pod"}
+
+        # Add GPU resource request if GPU is enabled
+        if gpu:
+            pod["spec"]["containers"][0]["resources"]["requests"]["nvidia.com/gpu"] = str(gpu)
 
         payload = {
             'log_level': 'DEBUG',
@@ -675,7 +692,7 @@ class KubernetesBackend:
         return activation_id
 
     def _generate_runtime_meta(self, docker_image_name):
-        runtime_name = self._format_job_name(docker_image_name, 128)
+        runtime_name = self._format_job_name(docker_image_name, 512)
         meta_job_name = f'{runtime_name}-meta'
 
         logger.info(f"Extracting metadata from: {docker_image_name}")
@@ -764,7 +781,7 @@ class KubernetesBackend:
         Runtime keys are used to uniquely identify runtimes within the storage,
         in order to know which runtimes are installed and which not.
         """
-        jobdef_name = self._format_job_name(docker_image_name, 256, version)
+        jobdef_name = self._format_job_name(docker_image_name, 512, version)
         user_data = os.path.join(self.cluster, self.namespace, self.user)
         runtime_key = os.path.join(self.name, version, user_data, jobdef_name)
 

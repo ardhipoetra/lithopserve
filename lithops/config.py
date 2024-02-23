@@ -197,6 +197,10 @@ def default_config(config_file=None, config_data=None, config_overwrite={}, load
     for key in c.LITHOPS_DEFAULT_CONFIG_KEYS:
         if key not in config_data['lithops']:
             config_data['lithops'][key] = c.LITHOPS_DEFAULT_CONFIG_KEYS[key]
+            
+    backend = config_data['lithops']['backend']
+    if config_data[backend].get('runtime_include_function'):
+        config_data['lithops']['runtime_include_function'] = config_data[backend]['runtime_include_function']
 
     return config_data
 
