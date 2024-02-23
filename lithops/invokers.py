@@ -93,6 +93,22 @@ class Invoker:
         logger.debug(f'ExecutorID {self.executor_id} - Invoker initialized.'
                      f' Max workers: {self.max_workers}')
 
+    def get_runtime_meta(self, job_id, runtime_memory):
+        runtime_memory = runtime_memory or self.runtime_info['runtime_memory'] \
+            if self.mode == SERVERLESS else self.runtime_info['runtime_memory']
+        runtime_timeout = self.runtime_info['runtime_timeout']
+
+        msg = ('ExecutorID {} | JobID {} - Selected Runtime: {} '
+               .format(self.executor_id, job_id, self.runtime_name))
+        msg = msg + f'- {runtime_memory}MB' if runtime_memory else msg
+        logger.info(msg)
+
+        runtime_key = self.compute_handler.get_runtime_key(self.runtime_name, runtime_memory, __version__)
+        runtime_meta = self.internal_storage.get_runtime_meta(runtime_key)
+
+        return runtime_meta
+
+
     def select_runtime(self, job_id, runtime_memory):
         """
         Return the runtime metadata
@@ -125,9 +141,9 @@ class Invoker:
         py_local_version = version_str(sys.version_info)
         py_remote_version = runtime_meta['python_version']
         if py_local_version != py_remote_version:
-            raise Exception(("The indicated runtime '{}' is running Python {} and it "
-                             "is not compatible with the local Python version {}")
-                            .format(self.runtime_name, py_remote_version, py_local_version))
+            import warnings
+            warnings.warn(f"The indicated runtime '{self.runtime_name}' is running Python {py_remote_version} and it "
+                             f"is not compatible with the local Python version {py_local_version}")
 
         return runtime_meta
 
@@ -162,12 +178,12 @@ class Invoker:
         """
         Run a job
         """
-        if self.include_function:
-            logger.debug('ExecutorID {} | JobID {} - Runtime include function feature '
-                         ' is activated' .format(job.executor_id, job.job_id))
-            job.runtime_name = self.runtime_name
-            extend_runtime(job, self.compute_handler, self.internal_storage)
-            self.runtime_name = job.runtime_name
+        # if self.include_function:
+        #     logger.debug('ExecutorID {} | JobID {} - Runtime include function feature '
+        #                  ' is activated' .format(job.executor_id, job.job_id))
+        #     job.runtime_name = self.runtime_name
+        #     extend_runtime(job, self.compute_handler, self.internal_storage)
+        #     self.runtime_name = job.runtime_name
 
         logger.info('ExecutorID {} | JobID {} - Starting function '
                     'invocation: {}() - Total: {} activations'
@@ -476,7 +492,8 @@ def extend_runtime(job, compute_handler, internal_storage):
     """
 
     base_docker_image = job.runtime_name
-    uuid = job.ext_runtime_uuid
+    # uuid = job.ext_runtime_uuid
+    uuid = 'ext'
     ext_runtime_name = f'{base_docker_image.split(":")[0]}:{uuid}'
 
     # update job with new extended runtime name
@@ -486,6 +503,8 @@ def extend_runtime(job, compute_handler, internal_storage):
     runtime_meta = internal_storage.get_runtime_meta(runtime_key)
 
     if not runtime_meta:
+        logger.info(f'Creating runtime: {ext_runtime_name}, memory: {job.runtime_memory}MB')
+
         ext_docker_file = '/'.join([job.local_tmp_dir, "Dockerfile"])
 
         # Generate Dockerfile extended with function dependencies and function
@@ -515,6 +534,6 @@ def extend_runtime(job, compute_handler, internal_storage):
     py_local_version = version_str(sys.version_info)
     py_remote_version = runtime_meta['python_version']
     if py_local_version != py_remote_version:
-        raise Exception(("The indicated runtime '{}' is running Python {} and it "
-                         "is not compatible with the local Python version {}")
-                        .format(job.runtime_name, py_remote_version, py_local_version))
+        import warnings
+        warnings.warn(f"The indicated runtime '{job.runtime_name}' is running Python {py_remote_version} and it "
+                         f"is not compatible with the local Python version {py_local_version}")
