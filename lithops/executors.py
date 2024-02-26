@@ -682,13 +682,29 @@ class FunctionExecutor:
         self,
         fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None,
         dst: Optional[str] = None,
-        figsize: Optional[tuple] = (10, 6)
+        figsize: Optional[tuple] = (10, 6),
     ):
         """
         Creates timeline and histogram of the current execution in dst_dir.
 
         :param fs: list of futures.
         :param dst: destination path to save .png plots.
+        """
+        stats_to_plot = self.stats(fs=fs)
+        if not stats_to_plot:
+            return
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)
+        from lithops.plots import create_timeline, create_histogram
+
+        logger.info(f'ExecutorID {self.executor_id} - Creating execution plots')
+        create_timeline(stats_to_plot, dst, figsize)
+        create_histogram(stats_to_plot, dst, figsize)
+
+    def stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None):
+        """
+        Returns the stats of the current execution.
+
+        :param fs: list of futures.
         """
         ftrs = self.futures if not fs else fs
 
@@ -701,13 +717,33 @@ class FunctionExecutor:
             logger.debug(f'ExecutorID {self.executor_id} - No futures ready to plot')
             return
 
-        logging.getLogger('matplotlib').setLevel(logging.WARNING)
-        from lithops.plots import create_timeline, create_histogram
+        logger.info(f'ExecutorID {self.executor_id} - Getting execution stats')
 
-        logger.info(f'ExecutorID {self.executor_id} - Creating execution plots')
+        stats_to_plot = [f.stats for f in ftrs_to_plot]
 
-        create_timeline(ftrs_to_plot, dst, figsize)
-        create_histogram(ftrs_to_plot, dst, figsize)
+        return stats_to_plot
+
+    def save_stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None, dst: Optional[str] = None):
+        """
+        Saves the stats of the current execution in dst.
+
+        :param fs: list of futures.
+        :param dst: destination path to save .json file.
+        """
+        stats_to_plot = self.stats(fs=fs)
+
+        if dst is None:
+            os.makedirs('plots', exist_ok=True)
+            dst = os.path.join(os.getcwd(), 'plots', '{}_{}'.format(int(time.time()), 'stats.json'))
+        else:
+            dst = os.path.expanduser(dst) if '~' in dst else dst
+            dst = '{}_{}'.format(os.path.realpath(dst), 'stats.json')
+        import json
+        with open(dst, 'w') as file:
+            json.dump(stats_to_plot, file, indent=4)
+
+
+
 
     def clean(
         self,

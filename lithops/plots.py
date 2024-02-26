@@ -24,14 +24,13 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.patches as mpatches
 from matplotlib.collections import LineCollection
+from matplotlib import pyplot as plt  # Import pyplot module
 
 sns.set_style('whitegrid')
-pylab.switch_backend("Agg")
 logger = logging.getLogger(__name__)
 
 
-def create_timeline(fs, dst, figsize=(10, 6)):
-    stats = [f.stats for f in fs]
+def create_timeline(stats, dst, figsize=(10, 6), return_plot=False, show_plot=False):
     host_job_create_tstamp = min([cm['host_job_create_tstamp'] for cm in stats])
 
     stats_df = pd.DataFrame(stats)
@@ -39,17 +38,15 @@ def create_timeline(fs, dst, figsize=(10, 6)):
 
     palette = sns.color_palette("deep", 10)
 
-    fig = pylab.figure(figsize=figsize)
+    fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(1, 1, 1)
 
     y = np.arange(total_calls)
     point_size = 10
 
     fields = [('host submit', stats_df.host_submit_tstamp - host_job_create_tstamp),
-              # ('worker start', stats_df.worker_start_tstamp - host_job_create_tstamp),
               ('function start', stats_df.worker_func_start_tstamp - host_job_create_tstamp),
               ('function done', stats_df.worker_func_end_tstamp - host_job_create_tstamp),
-              # ('worker done', stats_df.worker_end_tstamp - host_job_create_tstamp),
               ('status fetched', stats_df.host_status_done_tstamp - host_job_create_tstamp)]
 
     if 'host_result_done_tstamp' in stats_df:
@@ -57,13 +54,13 @@ def create_timeline(fs, dst, figsize=(10, 6)):
 
     patches = []
     for f_i, (field_name, val) in enumerate(fields):
-        ax.scatter(val, y, c=[palette[f_i]], edgecolor='none', s=point_size, alpha=0.8)
+        ax.scatter(val, y + 1, c=[palette[f_i]], edgecolor='none', s=point_size, alpha=0.8)
         patches.append(mpatches.Patch(color=palette[f_i], label=field_name))
 
     ax.set_xlabel('Execution Time (sec)')
     ax.set_ylabel('Function Call')
 
-    legend = pylab.legend(handles=patches, loc='upper right', frameon=True)
+    legend = plt.legend(handles=patches, loc='upper right', frameon=True)
     legend.get_frame().set_facecolor('#FFFFFF')
 
     yplot_step = int(np.max([1, total_calls / 20]))
@@ -99,9 +96,15 @@ def create_timeline(fs, dst, figsize=(10, 6)):
 
     fig.savefig(dst)
 
+    if return_plot:
+        return fig
 
-def create_histogram(fs, dst, figsize=(10, 6)):
-    stats = [f.stats for f in fs]
+    if show_plot:
+        plt.show()
+
+
+
+def create_histogram(stats, dst, figsize=(10, 6), return_plot=False, show_plot=False):
     host_job_create_tstamp = min([cm['host_job_create_tstamp'] for cm in stats])
 
     total_calls = len(stats)
@@ -130,7 +133,7 @@ def create_histogram(fs, dst, figsize=(10, 6)):
                 'end_tstamp': end_time,
                 'runtime_calls_hist': runtime_calls_hist}
 
-    fig = pylab.figure(figsize=figsize)
+    fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(1, 1, 1)
 
     time_rates = [(cs['worker_start_tstamp'], cs['worker_end_tstamp']) for cs in stats]
@@ -138,8 +141,8 @@ def create_histogram(fs, dst, figsize=(10, 6)):
     time_hist = compute_times_rates(time_rates)
 
     N = len(time_hist['start_tstamp'])
-    line_segments = LineCollection([[[time_hist['start_tstamp'][i], i],
-                                     [time_hist['end_tstamp'][i], i]] for i in range(N)],
+    line_segments = LineCollection([[[time_hist['start_tstamp'][i], i + 1],  # Add 1 to y-coordinate
+                                     [time_hist['end_tstamp'][i], i + 1]] for i in range(N)],
                                    linestyles='solid', color='k', alpha=0.6, linewidth=0.4)
 
     ax.add_collection(line_segments)
@@ -173,4 +176,12 @@ def create_histogram(fs, dst, figsize=(10, 6)):
         dst = '{}_{}'.format(os.path.realpath(dst), 'histogram.png')
 
     fig.savefig(dst)
-    pylab.close(fig)
+
+
+    if return_plot:
+        return fig
+
+    if show_plot:
+        plt.show()
+    plt.close(fig)
+

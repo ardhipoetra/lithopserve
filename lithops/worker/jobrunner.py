@@ -69,7 +69,7 @@ class JobRunner:
         self.jobrunner_conn = jobrunner_conn
         self.internal_storage = internal_storage
         self.lithops_config = job.config
-
+        self.alive = True
         self.output_key = create_output_key(job.executor_id, job.job_id, job.call_id)
 
         # Setup stats class
@@ -194,6 +194,9 @@ class JobRunner:
             return value
         return wrapper_decorator
 
+    def is_alive(self):
+        return self.alive
+
     @prepost
     def run(self):
         """
@@ -312,3 +315,4 @@ class JobRunner:
                 self.stats.write("worker_result_upload_time", round(output_upload_end_tstamp - output_upload_start_tstamp, 8))
             self.jobrunner_conn.send("Finished")
             logger.info("Process finished")
+            self.alive = False
