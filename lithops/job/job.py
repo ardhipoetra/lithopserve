@@ -44,7 +44,6 @@ def create_map_job(
     internal_storage,
     executor_id,
     job_id,
-    async_job,
     map_function,
     iterdata,
     runtime_meta,
@@ -57,7 +56,8 @@ def create_map_job(
     extra_args=None,
     obj_chunk_size=None,
     obj_newline='\n',
-    obj_chunk_number=None
+    obj_chunk_number=None,
+    async_job=True
 ):
     """
     Wrapper to create a map job. It integrates COS logic to process objects.

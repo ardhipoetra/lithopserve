@@ -201,7 +201,54 @@ class FunctionExecutor:
                              internal_storage=self.internal_storage,
                              executor_id=self.executor_id,
                              job_id=job_id,
-                             async_job=True,
+                             map_function=func,
+                             iterdata=[data],
+                             runtime_meta=runtime_meta,
+                             runtime_memory=runtime_memory,
+                             extra_env=extra_env,
+                             include_modules=include_modules,
+                             exclude_modules=exclude_modules,
+                             execution_timeout=timeout,
+                             async_job=True
+                             )
+
+        futures = self.invoker.run_job(job)
+        self.futures.extend(futures)
+
+        return futures[0]
+
+    def call_async(
+        self,
+        func: Callable,
+        data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]],
+        extra_env: Optional[Dict] = None,
+        runtime_memory: Optional[int] = None,
+        timeout: Optional[int] = None,
+        include_modules: Optional[List] = [],
+        exclude_modules: Optional[List] = []
+    ) -> ResponseFuture:
+        """
+        For running one function execution asynchronously.
+
+        :param func: The function to map over the data.
+        :param data: Input data. Arguments can be passed as a list or tuple, or as a dictionary for keyword arguments.
+        :param extra_env: Additional env variables for function environment.
+        :param runtime_memory: Memory to use to run the function.
+        :param timeout: Time that the function has to complete its execution before raising a timeout.
+        :param include_modules: Explicitly pickle these dependencies.
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
+
+        :return: Response future.
+        """
+        job_id = self._create_job_id('A')
+        self.last_call = 'call_async'
+
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+
+        job = create_map_job(config=self.config,
+                             internal_storage=self.internal_storage,
+                             executor_id=self.executor_id,
+                             job_id=job_id,
                              map_function=func,
                              iterdata=[data],
                              runtime_meta=runtime_meta,
@@ -215,6 +262,79 @@ class FunctionExecutor:
         self.futures.extend(futures)
 
         return futures[0]
+    
+    def map(
+            self,
+            map_function: Callable,
+            map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]],
+            chunksize: Optional[int] = None,
+            extra_args: Optional[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
+            extra_env: Optional[Dict[str, str]] = None,
+            runtime_memory: Optional[int] = None,
+            obj_chunk_size: Optional[int] = None,
+            obj_chunk_number: Optional[int] = None,
+            obj_newline: Optional[str] = '\n',
+            timeout: Optional[int] = None,
+            include_modules: Optional[List[str]] = [],
+            exclude_modules: Optional[List[str]] = []
+    ) -> FuturesList:
+        """
+        Spawn multiple function activations based on the items of an input list.
+
+        :param map_function: The function to map over the data
+        :param map_iterdata: An iterable of input data (e.g python list).
+        :param chunksize: Split map_iteradata in chunks of this size. Lithops spawns 1 worker per resulting chunk
+        :param extra_args: Additional arguments to pass to each map_function activation
+        :param extra_env: Additional environment variables for function environment
+        :param runtime_memory: Memory (in MB) to use to run the functions
+        :param obj_chunk_size: Used for data processing. Chunk size to split each object in bytes.
+                Must be >= 1MiB. 'None' for processing the whole file in one function activation
+        :param obj_chunk_number: Used for data processing. Number of chunks to split each object.
+                'None' for processing the whole file in one function activation. chunk_n has prevalence over chunk_size if both parameters are set
+        :param obj_newline: new line character for keeping line integrity of partitions.
+                'None' for disabling line integrity logic and get partitions of the exact same size in the functions
+        :param timeout: Max time per function activation (seconds)
+        :param include_modules: Explicitly pickle these dependencies. All required dependencies are pickled if default empty list.
+                No one dependency is pickled if it is explicitly set to None
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies. It is not taken into account if you set include_modules.
+
+        :return: A list with size `len(map_iterdata)` of futures for each job (Futures are also internally stored by Lithops).
+        """
+
+        job_id = self._create_job_id('M')
+        self.last_call = 'map'
+
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+
+        job = create_map_job(
+            config=self.config,
+            internal_storage=self.internal_storage,
+            executor_id=self.executor_id,
+            job_id=job_id,
+            map_function=map_function,
+            iterdata=map_iterdata,
+            chunksize=chunksize,
+            runtime_meta=runtime_meta,
+            runtime_memory=runtime_memory,
+            extra_env=extra_env,
+            include_modules=include_modules,
+            exclude_modules=exclude_modules,
+            execution_timeout=timeout,
+            extra_args=extra_args,
+            obj_chunk_size=obj_chunk_size,
+            obj_chunk_number=obj_chunk_number,
+            obj_newline=obj_newline
+        )
+
+        futures = self.invoker.run_job(job)
+        self.futures.extend(futures)
+
+        if isinstance(map_iterdata, FuturesList):
+            for fut in map_iterdata:
+                fut._produce_output = False
+
+        return create_futures_list(futures, self)
+
 
     def map_async(
         self,
