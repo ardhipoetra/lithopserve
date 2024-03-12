@@ -171,8 +171,8 @@ class FunctionExecutor:
 
     def call_async(
         self,
-        data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]],
         func: Optional[Callable] = job_installed_function,
+        data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]] = None,
         extra_env: Optional[Dict] = None,
         runtime_memory: Optional[int] = None,
         timeout: Optional[int] = None,
@@ -211,52 +211,6 @@ class FunctionExecutor:
                              execution_timeout=timeout,
                              async_job=True
                              )
-
-        futures = self.invoker.run_job(job)
-        self.futures.extend(futures)
-
-        return futures[0]
-
-    def call_async(
-        self,
-        func: Callable,
-        data: Union[List[Any], Tuple[Any, ...], Dict[str, Any]],
-        extra_env: Optional[Dict] = None,
-        runtime_memory: Optional[int] = None,
-        timeout: Optional[int] = None,
-        include_modules: Optional[List] = [],
-        exclude_modules: Optional[List] = []
-    ) -> ResponseFuture:
-        """
-        For running one function execution asynchronously.
-
-        :param func: The function to map over the data.
-        :param data: Input data. Arguments can be passed as a list or tuple, or as a dictionary for keyword arguments.
-        :param extra_env: Additional env variables for function environment.
-        :param runtime_memory: Memory to use to run the function.
-        :param timeout: Time that the function has to complete its execution before raising a timeout.
-        :param include_modules: Explicitly pickle these dependencies.
-        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
-
-        :return: Response future.
-        """
-        job_id = self._create_job_id('A')
-        self.last_call = 'call_async'
-
-        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
-
-        job = create_map_job(config=self.config,
-                             internal_storage=self.internal_storage,
-                             executor_id=self.executor_id,
-                             job_id=job_id,
-                             map_function=func,
-                             iterdata=[data],
-                             runtime_meta=runtime_meta,
-                             runtime_memory=runtime_memory,
-                             extra_env=extra_env,
-                             include_modules=include_modules,
-                             exclude_modules=exclude_modules,
-                             execution_timeout=timeout)
 
         futures = self.invoker.run_job(job)
         self.futures.extend(futures)
@@ -338,8 +292,8 @@ class FunctionExecutor:
 
     def map_async(
         self,
-        map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]],
         map_function: Optional[Callable] = job_installed_function,
+        map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
         chunksize: Optional[int] = None,
         extra_args: Optional[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
         extra_env: Optional[Dict[str, str]] = None,

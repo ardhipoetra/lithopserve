@@ -19,6 +19,7 @@ import logging
 import importlib
 
 logger = logging.getLogger(__name__)
+from lithops.version import __version__
 
 
 class ServerlessHandler:
@@ -92,7 +93,7 @@ class ServerlessHandler:
         """
         return self.backend.deploy_runtime(runtime_name, memory, timeout=timeout)
 
-    def delete_runtime(self, runtime_name, memory, version):
+    def delete_runtime(self, runtime_name, memory, version=__version__):
         """
         Wrapper method to delete a runtime in the compute backend
         """

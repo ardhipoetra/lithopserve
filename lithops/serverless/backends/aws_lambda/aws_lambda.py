@@ -472,7 +472,19 @@ class AWSLambdaBackend:
             image = list(filter(lambda image: 'imageTags' in image and tag in image['imageTags'], images)).pop()
             image_digest = image['imageDigest']
         except botocore.exceptions.ClientError:
-            raise Exception(f'Runtime "{runtime_name}" is not deployed to ECR')
+            logger.info(f'Runtime "{runtime_name}" is not deployed to ECR. Building it...')
+            try:
+                self.build_runtime(runtime_name, 'Dockerfile')
+                repo_name = self._format_repo_name(image)
+                response = self.ecr_client.describe_images(repositoryName=repo_name)
+                images = response['imageDetails']
+                if not images:
+                    raise Exception(f'Runtime {runtime_name} is not present in ECR.'
+                                    'Consider running "lithops runtime build -b aws_lambda ..."')
+                image = list(filter(lambda image: 'imageTags' in image and tag in image['imageTags'], images)).pop()
+                image_digest = image['imageDigest']
+            except Exception as e:
+                raise Exception(f'An error occurred building the runtime: {e}')
 
         registry = f'{self.account_id}.dkr.ecr.{self.region_name}.amazonaws.com'
         image_uri = f'{registry}/{repo_name}@{image_digest}'
