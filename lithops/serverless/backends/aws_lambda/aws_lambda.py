@@ -474,7 +474,7 @@ class AWSLambdaBackend:
         except Exception as e:
             logger.info(f'Runtime "{runtime_name}" is not deployed to ECR. Building it...')
             try:
-                self.build_runtime(runtime_name, 'Dockerfile')
+                self.build_runtime(runtime_name)
                 repo_name = self._format_repo_name(image)
                 response = self.ecr_client.describe_images(repositoryName=repo_name)
                 images = response['imageDetails']
