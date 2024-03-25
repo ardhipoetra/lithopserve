@@ -580,9 +580,19 @@ class AWSLambdaBackend:
             runtime_key = self.get_runtime_key(runtime_name+':ext', runtime_memory, __version__)
             self.internal_storage.delete_runtime_meta(runtime_key)
 
+        # Delete ECR repository
+        if self._is_container_runtime(runtime_name):
+            repo_name = self._format_repo_name(runtime_name)
+            try:
+                self.ecr_client.delete_repository(repositoryName=repo_name, force=True)
+            except Exception as e:
+                logger.debug(f'Error deleting ECR repository: {e}. Skipping deletion.')
+
         if not self._is_container_runtime(runtime_name):
             layer = self._format_layer_name(runtime_name, version)
             self._delete_layer(layer)
+
+
 
     def clean(self, **kwargs):
         """
