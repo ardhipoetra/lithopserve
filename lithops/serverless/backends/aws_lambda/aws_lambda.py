@@ -73,7 +73,8 @@ class AWSLambdaBackend:
         self.lambda_client = self.aws_session.client(
             'lambda', region_name=self.region_name,
             config=botocore.client.Config(
-                user_agent_extra=self.user_agent
+                user_agent_extra=self.user_agent,
+                max_pool_connections=2000
             )
         )
 
