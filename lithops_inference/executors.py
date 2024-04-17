@@ -964,6 +964,14 @@ class FunctionExecutor:
             return
         logger.info("View log file logs at {}".format(self.log_path))
 
+    # def job_cost(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture]]] = None):
+    #     if hasattr(self.compute_handler.backend, 'calc_cost'):
+    #         for future in fs:
+    #             activation_id= future.activation_id
+    #             runtime_name = future.runtime_name
+    #             cost = self.compute_handler.backend.calc_cost(activation_id, runtime_name)
+    #             logger.info(f'Activation {activation_id} cost: {cost}')
+
 
 class LocalhostExecutor(FunctionExecutor):
     """

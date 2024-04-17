@@ -106,6 +106,8 @@ class AWSLambdaBackend:
         else:
             logger.info(f"{msg} - Region: {self.region_name}")
 
+        self.logs_client = self.aws_session.client('logs', region_name=self.region_name)
+
     def _format_function_name(self, runtime_name, runtime_memory, version=__version__):
         name = f'{runtime_name}-{runtime_memory}-{version}'
         name_hash = hashlib.sha1(name.encode("utf-8")).hexdigest()[:10]
@@ -799,3 +801,70 @@ class AWSLambdaBackend:
             return result
         else:
             raise Exception(f'An error occurred: {result}')
+
+    def _wait_for_function_cold(self, func_name, func_mem):
+        """
+        Helper function which waits for the lambda to be deployed (state is 'Active').
+        Raises exception if waiting times out or if state is 'Failed' or 'Inactive'
+        """
+        retries, sleep_seconds = (15, 30) if 'vpc' in self.lambda_config else (30, 5)
+
+        while retries > 0:
+            res = self.lambda_client.get_function_configuration(FunctionName=func_name)
+            state = res['LastUpdateStatus']
+            current_memory_size = res['MemorySize']
+            if state == 'InProgress':
+                time.sleep(sleep_seconds)
+                logger.debug('"{}" function is being deployed... '
+                             '(status: {})'.format(func_name, res['LastUpdateStatus']))
+                retries -= 1
+                if retries == 0:
+                    raise Exception('"{}" function not deployed (timed out): {}'.format(func_name, res))
+            elif state == 'Failed' or state == 'Inactive':
+                raise Exception('"{}" function not deployed (state is "{}"): {}'.format(func_name, state, res))
+            elif state == 'Successful':
+                if current_memory_size==func_mem:
+                    break
+
+        logger.debug('Ok --> function "{}" is cold now'.format(func_name))
+
+    def force_cold(self, runtime_name, runtime_memory):
+        function_name = self._format_function_name(runtime_name, runtime_memory)
+        response = self.lambda_client.get_function_configuration(FunctionName=function_name)
+        current_memory_size = response['MemorySize']
+
+        # Increase memory size by 1
+        response = self.lambda_client.update_function_configuration(
+            FunctionName=function_name,
+            MemorySize=current_memory_size + 1,
+        )
+        self._wait_for_function_cold(function_name, current_memory_size + 1)
+
+        # Decrease memory size by 1 to original size
+        response = self.lambda_client.update_function_configuration(
+            FunctionName=function_name,
+            MemorySize=current_memory_size,
+        )
+        self._wait_for_function_cold(function_name, current_memory_size)
+
+        if response['MemorySize'] == runtime_memory:
+            return True
+        else:
+            logger.debug(response)
+            if response['ResponseMetadata']['HTTPStatusCode'] == 401:
+                raise Exception('Unauthorized - Invalid API Key')
+            elif response['ResponseMetadata']['HTTPStatusCode'] == 404:
+                raise Exception('Lithops Runtime: {} not deployed'.format(runtime_name))
+            else:
+                raise Exception(response)
+
+
+    # def calc_cost(self, activation_id, runtime_name):
+    #     log_stream_name = f'/aws/lambda/{activation_id}'
+    #     filter_pattern = f'logStreamName: {runtime_name} AND message @log =~ "REPORT"'
+    #     log_events = self.logs_client.filter_log_events(
+    #         logGroupName=log_stream_name,
+    #         filterPattern=f'RequestId: "{activation_id}"',
+    #     )
+    #
+    #     return config.UNIT_PRICE * sum(runtimes[i] * memory[i] / 1024 for i in range(len(runtimes)))

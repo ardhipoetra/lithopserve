@@ -138,3 +138,9 @@ class ServerlessHandler:
         Wrapper method that returns the type of the backend (Batch or FaaS)
         """
         return self.backend.type
+
+    def force_cold(self, runtime_name, memory):
+        """
+        Wrapper method to force cold start in the compute backend
+        """
+        self.backend.force_cold(runtime_name, memory)
