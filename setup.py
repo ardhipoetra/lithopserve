@@ -68,9 +68,9 @@ extras_require["all"] = list(set(chain.from_iterable(extras_require.values())))
 
 
 # how to get version info into the project
-exec(open('lithops_inference/version.py').read())
+exec(open('lithops/version.py').read())
 setup(
-    name='lithops_inference',
+    name='lithops',
     version=__version__,
     url='https://github.com/lithops-cloud/lithops',
     author='Gil Vernik, Josep Sampe',
@@ -82,7 +82,7 @@ setup(
     include_package_data=True,
     entry_points='''
         [console_scripts]
-        lithops_inference=lithops_inference.scripts.cli:lithops_cli
+        lithops=lithops.scripts.cli:lithops_cli
     ''',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
