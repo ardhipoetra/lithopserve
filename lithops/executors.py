@@ -424,7 +424,6 @@ class FunctionExecutor:
     def map_sync(
             self,
             map_iterdata: List[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]],
-            force_cold: bool = False,
             chunksize: Optional[int] = None,
             extra_args: Optional[Union[List[Any], Tuple[Any, ...], Dict[str, Any]]] = None,
             extra_env: Optional[Dict[str, str]] = None,
@@ -477,9 +476,6 @@ class FunctionExecutor:
         difftimes = [None for _ in range(len(payloads))]
         results = [None for _ in range(len(payloads))]
         numbers = range(len(payloads))
-
-        if force_cold:
-            self.compute_handler.force_cold(payload_default)
 
         def invokator(payload, number):
             # time.sleep(1)
