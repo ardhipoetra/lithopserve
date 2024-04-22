@@ -68,11 +68,11 @@ extras_require["all"] = list(set(chain.from_iterable(extras_require.values())))
 
 
 # how to get version info into the project
-exec(open('lithops_serve/version.py').read())
+exec(open('lithopserve/version.py').read())
 setup(
-    name='lithops_serve',
+    name='lithopserve',
     version=__version__,
-    url='https://github.com/ZikBurns/lithops_serve',
+    url='https://github.com/ZikBurns/lithopserve',
     author='Gil Vernik, Josep Sampe',
     description='Lithops lets you transparently run your Python applications in the Cloud',
     author_email='gilv@ibm.com, josep.sampe@gmail.com',
@@ -82,7 +82,7 @@ setup(
     include_package_data=True,
     entry_points='''
         [console_scripts]
-        lithops_serve=lithops_serve.scripts.cli:lithops_cli
+        lithopserve=lithopserve.scripts.cli:lithops_cli
     ''',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
