@@ -1,4 +1,4 @@
-def default_function(payload):
+def default_function(id, payload, storage):
     print(payload)
     return {
         'statusCode': 200,
