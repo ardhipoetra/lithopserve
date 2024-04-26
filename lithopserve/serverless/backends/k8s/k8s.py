@@ -639,7 +639,7 @@ class KubernetesBackend:
         return activation_id
 
     def _generate_runtime_meta(self, docker_image_name):
-        runtime_name = self._format_job_name(docker_image_name, 128)
+        runtime_name = self._format_job_name(docker_image_name, 512)
         meta_job_name = f'{runtime_name}-meta'
 
         logger.info(f"Extracting metadata from: {docker_image_name}")
