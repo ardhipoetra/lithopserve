@@ -106,11 +106,11 @@ spec:
                   fieldPath: status.podIP
           resources:
             requests:
-              cpu: '0.2'
-              memory: 128Mi
+              cpu: '0.5'
+              memory: 512Mi
             limits:
-              cpu: '0.2'
-              memory: 128Mi
+              cpu: '0.5'
+              memory: 512Mi
       imagePullSecrets:
         - name: lithopserve-regcred
 """
