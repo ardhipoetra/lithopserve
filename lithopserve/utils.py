@@ -47,11 +47,9 @@ def uuid_str():
 
 def create_executor_id(lenght=6):
     """ Creates an executor ID. """
-    if '__LITHOPS_SESSION_ID' in os.environ:
-        session_id = os.environ['__LITHOPS_SESSION_ID']
-    else:
-        session_id = uuid_str().replace('/', '')[:lenght]
-        os.environ['__LITHOPS_SESSION_ID'] = session_id
+
+    session_id = uuid_str().replace('/', '')[:lenght]
+    os.environ['__LITHOPS_SESSION_ID'] = session_id
 
     if '__LITHOPS_TOTAL_EXECUTORS' in os.environ:
         exec_num = int(os.environ['__LITHOPS_TOTAL_EXECUTORS']) + 1

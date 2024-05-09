@@ -18,7 +18,7 @@ import os
 
 DEFAULT_CONFIG_KEYS = {
     'runtime_timeout': 600,  # Default: 10 minutes
-    'runtime_memory': 512,  # Default memory: 512 MB
+    'runtime_memory': 1024,  # Default memory: 512 MB
     'runtime_cpu': 1,  # 1 vCPU
     'max_workers': 100,
     'worker_processes': 1,
@@ -106,10 +106,10 @@ spec:
                   fieldPath: status.podIP
           resources:
             requests:
-              cpu: '0.5'
+              cpu: '1'
               memory: 512Mi
             limits:
-              cpu: '0.5'
+              cpu: '1'
               memory: 512Mi
       imagePullSecrets:
         - name: lithopserve-regcred
