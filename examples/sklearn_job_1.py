@@ -1,7 +1,7 @@
 import numpy as np
 import joblib
-from lithops.util.joblib import register_lithops
-from lithops.utils import setup_lithops_logger
+from lithopserve.util.joblib import register_lithops
+from lithopserve.utils import setup_lithops_logger
 from sklearn.datasets import load_digits
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC
@@ -21,5 +21,5 @@ register_lithops()
 
 setup_lithops_logger('INFO')
 
-with joblib.parallel_backend('lithops'):
+with joblib.parallel_backend('lithopserve'):
     search.fit(digits.data, digits.target)

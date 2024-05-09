@@ -1,6 +1,6 @@
 # from multiprocessing import Process, Pipe
-from lithops.multiprocessing import Process, Pipe
-from lithops.utils import setup_lithops_logger
+from lithopserve.multiprocessing import Process, Pipe
+from lithopserve.utils import setup_lithops_logger
 import logging
 
 setup_lithops_logger(logging.DEBUG)

@@ -1,7 +1,7 @@
 """
 Simple Lithops example using one single function invocation
 """
-import lithops
+import lithopserve
 
 
 def my_function(x):
@@ -9,6 +9,6 @@ def my_function(x):
 
 
 if __name__ == '__main__':
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function, 3)
     print(fexec.get_result())

@@ -1,6 +1,6 @@
 # from multiprocessing import Pool, Value, RawValue
-from lithops.multiprocessing import Pool, Value, RawValue
-from lithops.utils import setup_lithops_logger
+from lithopserve.multiprocessing import Pool, Value, RawValue
+from lithopserve.utils import setup_lithops_logger
 
 # setup_lithops_logger('DEBUG')
 

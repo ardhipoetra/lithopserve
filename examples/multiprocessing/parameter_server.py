@@ -1,8 +1,8 @@
 import numpy as np
 import time
 
-from lithops.multiprocessing import Pool
-from lithops.multiprocessing.managers import SyncManager
+from lithopserve.multiprocessing import Pool
+from lithopserve.multiprocessing.managers import SyncManager
 # from multiprocessing import Pool
 # from multiprocessing.managers import SyncManager
 

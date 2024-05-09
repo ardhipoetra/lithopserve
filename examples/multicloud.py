@@ -1,8 +1,8 @@
 """
 Simple Lithops example using multiple clouds
 """
-from lithops import FunctionExecutor
-from lithops import get_result
+from lithopserve import FunctionExecutor
+from lithopserve import get_result
 
 
 def double(i):

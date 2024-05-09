@@ -1,5 +1,5 @@
 # import multiprocessing as mp
-import lithops.multiprocessing as mp
+import lithopserve.multiprocessing as mp
 
 
 def multiple_args(arg1, arg2, arg3):

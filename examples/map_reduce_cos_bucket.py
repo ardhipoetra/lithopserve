@@ -20,10 +20,10 @@ In the reduce function there will be always one parameter
 from where you can access to the partial results.
 """
 
-import lithops
+import lithopserve
 
 
-bucketname = 'cos://lithops-sample-data'  # Change-me
+bucketname = 'cos://lithopserve-sample-data'  # Change-me
 
 
 def my_map_function(obj):
@@ -59,7 +59,7 @@ def my_reduce_function(results):
 if __name__ == "__main__":
     chunk_size = 4*1024**2  # 4MB
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map_reduce(my_map_function, bucketname, my_reduce_function, obj_chunk_size=chunk_size)
     print(fexec.get_result())
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     """
     print()
     print('One reducer per object:')
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map_reduce(my_map_function, bucketname, my_reduce_function, obj_chunk_size=chunk_size,
                      obj_reduce_by_key=True)
     print(fexec.get_result())

@@ -1,7 +1,7 @@
 import time
 import requests
 
-from lithops import multiprocessing as mp
+from lithopserve import multiprocessing as mp
 
 
 # import multiprocessing as mp

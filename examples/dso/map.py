@@ -1,7 +1,7 @@
 from dso.client import Client
 from jpype import *
 from jpype import java
-import lithops
+import lithopserve
 import os
 
 dso = os.environ.get('DSO')
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     c = f.getAtomicCounter("cnt")
     c.reset()
     iterdata = [1, 2, 3, 4]
-    fexec = lithops.FunctionExecutor(runtime='0track/lithops-dso:1.1')
+    fexec = lithopserve.FunctionExecutor(runtime='0track/lithopserve-dso:1.1')
     fexec.map(my_map_function, iterdata)
     print(fexec.get_result())
     print(c.tally())

@@ -1,8 +1,8 @@
 import sys
 
-import lithops
-from lithops import Storage
-from lithops.multiprocessing import util
+import lithopserve
+from lithopserve import Storage
+from lithopserve.multiprocessing import util
 import time
 
 iterdata = [1, 2, 3, 4, 5]
@@ -41,7 +41,7 @@ def my_reduce_function(results, id):
 
 
 if __name__ == "__main__":
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
 
     stream_id = fexec.executor_id
     local_log = util.RemoteLoggingFeed(stream_id)

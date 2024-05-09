@@ -1,6 +1,6 @@
 import time
 
-from lithops.multiprocessing import Pool, Barrier, current_process
+from lithopserve.multiprocessing import Pool, Barrier, current_process
 # from multiprocessing import Pool, Barrier, current_process
 
 

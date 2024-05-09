@@ -1,5 +1,5 @@
 # from multiprocessing import Process, Manager
-from lithops.multiprocessing import Process, Manager
+from lithopserve.multiprocessing import Process, Manager
 
 
 def f(d, l):

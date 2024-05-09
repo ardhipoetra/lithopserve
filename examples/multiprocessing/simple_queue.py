@@ -1,4 +1,4 @@
-from lithops.multiprocessing import Process, SimpleQueue, Queue
+from lithopserve.multiprocessing import Process, SimpleQueue, Queue
 
 
 def f(q):

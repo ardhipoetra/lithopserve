@@ -1,4 +1,4 @@
-from lithops.multiprocessing import Pool, Semaphore, SimpleQueue, current_process
+from lithopserve.multiprocessing import Pool, Semaphore, SimpleQueue, current_process
 import time
 
 

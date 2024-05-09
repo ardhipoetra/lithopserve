@@ -2,7 +2,7 @@
 Simple Lithops example using the 'storage' parameter, which is
 a ready-to-use Storage instance.
 """
-import lithops
+import lithopserve
 
 
 def my_function(bucket_name, obj_key, storage):
@@ -22,8 +22,8 @@ def my_function(bucket_name, obj_key, storage):
 
 
 if __name__ == '__main__':
-    bucket_name = 'lithops-sample-data'
+    bucket_name = 'lithopserve-sample-data'
     obj_key = 'obj1.txt'
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function, (bucket_name, obj_key))
     print(fexec.get_result())

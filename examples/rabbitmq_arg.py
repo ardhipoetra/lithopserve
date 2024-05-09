@@ -3,7 +3,7 @@ Simple Lithops example using 2 function invocations (writer, reader) with
 the 'rabbitmq' parameter, which is a pika.BlockingConnection() instance.
 RabbitMQ amqp_url must be in configuration to make it working.
 """
-import lithops
+import lithopserve
 
 
 def my_function_writer(queue_name, message, rabbitmq):
@@ -33,9 +33,9 @@ def my_function_reader(queue_name, rabbitmq):
 
 if __name__ == '__main__':
     queue_name = 'my_queue'
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function_writer, (queue_name, 'This is a rabbitmq test'))
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function_reader, queue_name)
     print(fexec.get_result())

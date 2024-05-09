@@ -1,5 +1,5 @@
 # from multiprocessing import Pool, Array, Process
-from lithops.multiprocessing import Pool, Array, Process
+from lithopserve.multiprocessing import Pool, Array, Process
 
 
 def replace(index, value):

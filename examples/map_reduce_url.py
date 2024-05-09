@@ -18,7 +18,7 @@ In the reduce function there will be always one parameter
 from where you can access to the partial results.
 """
 
-import lithops
+import lithopserve
 
 # Dataset from: https://archive.ics.uci.edu/ml/datasets/bag+of+words
 iterdata = ['https://archive.ics.uci.edu/ml/machine-learning-databases/bag-of-words/vocab.enron.txt',
@@ -57,7 +57,7 @@ def my_reduce_function(results):
 
 
 if __name__ == "__main__":
-    fexec = lithops.FunctionExecutor(log_level='INFO')
+    fexec = lithopserve.FunctionExecutor(log_level='INFO')
     fexec.map_reduce(my_map_function, iterdata, my_reduce_function)
     result = fexec.get_result()
     print("Done!")

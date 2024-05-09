@@ -12,7 +12,7 @@ each function must be enclosed within another list [] as in the
 next example. The parameters will be mapped in the order you wrote
 them.
 """
-import lithops
+import lithopserve
 
 
 def my_map_function(x, y):
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             (5, 6),  # Args for function3
            ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(my_map_function, args)
     print(fexec.get_result())
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
               {'x': 5, 'y': 6},  # Kwargs for function3
              ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(my_map_function, kwargs)
     print(fexec.get_result())
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
             ([5, 6],),  # Args for function3
            ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(sum_list, args)
     print(fexec.get_result())
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
             ([11, 12, 13, 14, 15], 4)  # Args for function3
            ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(sum_list_mult, args)
     print(fexec.get_result())
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                {'list_of_numbers': [11, 12, 13, 14, 15], 'x': 4},  # Kwargs for function3
              ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(sum_list_mult, kwargs)
     print(fexec.get_result())
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     extra_args
     """
     args = [0, 1, 2]
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(my_map_function, args, extra_args=(10,))
     print(fexec.get_result())
 
@@ -114,6 +114,6 @@ if __name__ == "__main__":
               {'x': 5},  # Kwargs for function3
              ]  # End list of parameters for Lithops
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(my_map_function, kwargs, extra_args={'y': 3})
     print(fexec.get_result())

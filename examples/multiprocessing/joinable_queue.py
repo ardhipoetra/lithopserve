@@ -1,7 +1,7 @@
 import time
 
 from multiprocessing import Process, JoinableQueue
-# from lithops.multiprocessing import Process, JoinableQueue
+# from lithopserve.multiprocessing import Process, JoinableQueue
 
 
 def worker(queue):

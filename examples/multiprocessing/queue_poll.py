@@ -1,6 +1,6 @@
 import time
 
-from lithops.multiprocessing import Process, Queue, current_process
+from lithopserve.multiprocessing import Process, Queue, current_process
 
 
 def f(q):

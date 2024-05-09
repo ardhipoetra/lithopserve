@@ -15,10 +15,10 @@ In the reduce function there will be always one parameter
 from where you can access to the partial results.
 """
 
-import lithops
+import lithopserve
 
 # Bucket with prefix
-data_location = 'cos://lithops-sample-data/test/'  # Change-me
+data_location = 'cos://lithopserve-sample-data/test/'  # Change-me
 
 
 def my_map_function(obj):
@@ -40,6 +40,6 @@ def my_map_function(obj):
 
 
 if __name__ == "__main__":
-    fexec = lithops.FunctionExecutor(log_level='DEBUG')
+    fexec = lithopserve.FunctionExecutor(log_level='DEBUG')
     fexec.map(my_map_function, data_location)
     print(fexec.get_result())

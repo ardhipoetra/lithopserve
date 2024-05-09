@@ -1,9 +1,9 @@
 """
 Simple Lithops example using the 'Storage' interface
 """
-from lithops import FunctionExecutor, Storage
+from lithopserve import FunctionExecutor, Storage
 
-BUCKET_NAME = 'lithops-sample-data'  # change-me
+BUCKET_NAME = 'lithopserve-sample-data'  # change-me
 
 
 def my_function(obj_id, storage):

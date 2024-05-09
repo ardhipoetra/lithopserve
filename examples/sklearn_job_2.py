@@ -1,5 +1,5 @@
 import joblib
-from lithops.util.joblib import register_lithops
+from lithopserve.util.joblib import register_lithops
 from sklearn.datasets import load_digits
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
@@ -14,7 +14,7 @@ search = GridSearchCV(model, param_grid, cv=2, refit=True)
 
 register_lithops()
 
-with joblib.parallel_backend("lithops"):
+with joblib.parallel_backend("lithopserve"):
     search.fit(
         digits.data,
         digits.target,

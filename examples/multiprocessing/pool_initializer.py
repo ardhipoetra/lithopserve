@@ -1,5 +1,5 @@
 # import multiprocessing as mp
-from lithops import multiprocessing as mp
+from lithopserve import multiprocessing as mp
 
 
 def work(num):

@@ -1,6 +1,6 @@
 # from multiprocessing import Pool
-from lithops.multiprocessing import Pool
-from lithops.utils import setup_lithops_logger
+from lithopserve.multiprocessing import Pool
+from lithopserve.utils import setup_lithops_logger
 
 import time
 import logging

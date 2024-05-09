@@ -1,5 +1,5 @@
 """
-This example show how a lithops function can be invoked
+This example show how a lithopserve function can be invoked
 in one machine and get the results in another machine by
 simply serializing and passing the futures.
 """
@@ -7,7 +7,7 @@ import time
 import os
 
 # ---------------------- Machine 1 ---------------------
-import lithops
+import lithopserve
 import pickle
 
 
@@ -16,7 +16,7 @@ def my_map_function(id, x):
     return x + 7
 
 
-fexec = lithops.FunctionExecutor()
+fexec = lithopserve.FunctionExecutor()
 futures = fexec.map(my_map_function, range(5))
 with open('futures.pickle', 'wb') as file:
     pickle.dump(futures, file)
@@ -26,7 +26,7 @@ time.sleep(5)
 
 # ---------------------- Machine 2---------------------
 import pickle
-from lithops.wait import get_result
+from lithopserve.wait import get_result
 
 with open('futures.pickle', 'rb') as file:
     futures = pickle.load(file)

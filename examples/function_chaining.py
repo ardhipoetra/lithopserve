@@ -2,7 +2,7 @@
 Simple Lithops example using the function chaining pattern
 in the Futures API.
 """
-import lithops
+import lithopserve
 
 
 def my_func1(x):
@@ -19,6 +19,6 @@ def my_func3(x, y, z):
 
 if __name__ == '__main__':
     iterdata = [1, 2, 3]
-    fexec = lithops.FunctionExecutor(log_level='INFO')
+    fexec = lithopserve.FunctionExecutor(log_level='INFO')
     res = fexec.map(my_func1, iterdata).map(my_func2).map(my_func3).get_result()
     print(res)

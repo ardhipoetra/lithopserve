@@ -1,6 +1,6 @@
 import joblib
 import pandas as pd
-from lithops.util.joblib import register_lithops
+from lithopserve.util.joblib import register_lithops
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import FunctionTransformer, Pipeline
@@ -27,7 +27,7 @@ search = GridSearchCV(pipeline, param_grid, cv=2, refit=True)
 
 
 register_lithops()
-with joblib.parallel_backend("lithops"):
+with joblib.parallel_backend("lithopserve"):
     search.fit(
         data,
         target,

@@ -2,7 +2,7 @@
 Simple Lithops example using one single function invocation
 which internally invokes a map.
 """
-import lithops
+import lithopserve
 import time
 
 
@@ -14,12 +14,12 @@ def my_map_function(id, x):
 
 def my_function(x):
     iterdata = range(x)
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     return fexec.map(my_map_function, iterdata)
 
 
 if __name__ == '__main__':
-    fexec = lithops.FunctionExecutor(log_level='INFO')
+    fexec = lithopserve.FunctionExecutor(log_level='INFO')
     fexec.call_async(my_function, 3)
     fexec.wait()
     print(fexec.get_result())

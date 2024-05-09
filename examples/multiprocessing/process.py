@@ -1,7 +1,7 @@
 import getpass
 
-import lithops.multiprocessing as mp
-from lithops.multiprocessing import Process
+import lithopserve.multiprocessing as mp
+from lithopserve.multiprocessing import Process
 # from multiprocessing import Process
 
 

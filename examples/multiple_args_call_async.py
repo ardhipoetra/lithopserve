@@ -8,7 +8,7 @@ the order you wrote them. In the following example the x
 parameter will take the value 3 and the y parameter will
 take the value 6.
 """
-import lithops
+import lithopserve
 
 
 def my_function(x, y):
@@ -31,7 +31,7 @@ def sum_list_mult(list_of_numbers, x):
 
 if __name__ == "__main__":
     args = (3, 6)
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function, args)
     print(fexec.get_result())
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     """
     kwargs = {'x': 2, 'y': 8}
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function, kwargs)
     print(fexec.get_result())
 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     """
     args = ([1, 2, 3, 4, 5], )
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(sum_list, args)
     print(fexec.get_result())
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     """
     args = ([1, 2, 3, 4, 5], 5)
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(sum_list_mult, args)
     print(fexec.get_result())
 
@@ -71,6 +71,6 @@ if __name__ == "__main__":
     """
     kwargs = {'list_of_numbers': [1, 2, 3, 4, 5], 'x': 3}
 
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(sum_list_mult, kwargs)
     print(fexec.get_result())

@@ -1,5 +1,5 @@
-import lithops.multiprocessing as mp
-from lithops.multiprocessing import config as mp_config
+import lithopserve.multiprocessing as mp
+from lithopserve.multiprocessing import config as mp_config
 
 
 def my_map_function(x):

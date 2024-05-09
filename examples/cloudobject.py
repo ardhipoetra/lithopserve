@@ -3,7 +3,7 @@ Simple Lithops example using cloudobjects to transparently pass
 objects stored in the storage backend between functions without
 knowing they exact location (bucket, key)
 """
-import lithops
+import lithopserve
 
 
 def my_function_put(text, storage):
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     At the end of the with statement all
     cloudobjects are automatically deleted.
     """
-    with lithops.FunctionExecutor() as fexec:
+    with lithopserve.FunctionExecutor() as fexec:
         fexec.call_async(my_function_put, 'Hello World')
         cloudobjects = fexec.get_result()
         fexec.map(my_function_get, cloudobjects)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     fexec.clean(cs=cloudobjects) is mandatory if you created
     the cloudobjects in a custom location.
     """
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function_put, 'Hello World')
     cloudobjects = fexec.get_result()
     fexec.map(my_function_get, cloudobjects)

@@ -2,7 +2,7 @@
 Simple Lithops example for running non-python code that is
 present in the docker container runtime
 """
-import lithops
+import lithopserve
 import os
 import subprocess
 
@@ -14,6 +14,6 @@ def my_function(arg1, arg2):
 
 
 if __name__ == '__main__':
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.call_async(my_function, [3, 1])
     print(fexec.get_result())

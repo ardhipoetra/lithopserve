@@ -1,7 +1,7 @@
 import random
 
 # from multiprocessing import Pool
-from lithops.multiprocessing import Pool
+from lithopserve.multiprocessing import Pool
 
 
 def is_inside(n):

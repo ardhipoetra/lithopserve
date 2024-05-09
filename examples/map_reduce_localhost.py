@@ -19,7 +19,7 @@ from where you can access to the partial results.
 """
 
 import os
-import lithops
+import lithopserve
 import requests
 from urllib.parse import urlparse
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             r = requests.get(url, allow_redirects=True)
             open(file_path, 'wb').write(r.content)
 
-    fexec = lithops.FunctionExecutor(backend='localhost', storage='localhost', log_level='DEBUG')
+    fexec = lithopserve.FunctionExecutor(backend='localhost', storage='localhost', log_level='DEBUG')
     fexec.map_reduce(my_map_function, iterdata, my_reduce_function, obj_chunk_number=2)
     result = fexec.get_result()
     print("Done!")

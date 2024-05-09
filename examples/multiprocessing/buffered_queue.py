@@ -2,7 +2,7 @@ import time
 import random
 
 # from multiprocessing import Process, Queue
-from lithops.multiprocessing import Process, Queue
+from lithopserve.multiprocessing import Process, Queue
 
 
 def work(remote_queue):

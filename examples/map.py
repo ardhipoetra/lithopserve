@@ -5,7 +5,7 @@ map function for each entry in 'iterdata'. Finally
 it will print the results for each invocation with
 fexec.get_result()
 """
-import lithops
+import lithopserve
 import time
 
 
@@ -17,7 +17,7 @@ def my_map_function(id, x):
 
 if __name__ == "__main__":
     iterdata = [1, 2, 3, 4]
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(my_map_function, range(2))
     fexec.map(my_map_function, range(6))
     print(fexec.get_result())

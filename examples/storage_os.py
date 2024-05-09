@@ -1,5 +1,5 @@
-import lithops
-from lithops.storage.cloud_proxy import open, os
+import lithopserve
+from lithopserve.storage.cloud_proxy import open, os
 
 
 def map_func(x):
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     print(os.listdir(dirname))
 
     # Get files that have been created in functions
-    fexec = lithops.FunctionExecutor()
+    fexec = lithopserve.FunctionExecutor()
     fexec.map(map_func, [1, 2, 3, 4])
     res = fexec.get_result()
 

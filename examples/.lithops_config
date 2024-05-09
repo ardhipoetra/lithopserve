@@ -1,4 +1,4 @@
-lithops:
+lithopserve:
     backend : k8s
     log_level: DEBUG
     storage: minio
