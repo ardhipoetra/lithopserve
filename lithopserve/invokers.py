@@ -141,9 +141,9 @@ class Invoker:
         py_local_version = version_str(sys.version_info)
         py_remote_version = runtime_meta['python_version']
         if py_local_version != py_remote_version:
-            raise Exception(("The indicated runtime '{}' is running Python {} and it "
-                             "is not compatible with the local Python version {}")
-                            .format(self.runtime_name, py_remote_version, py_local_version))
+            import warnings
+            warnings.warn(f"The indicated runtime '{self.runtime_name}' is running Python {py_remote_version} and it "
+                             f"is not compatible with the local Python version {py_local_version}")
 
         return runtime_meta
 
@@ -534,6 +534,6 @@ def extend_runtime(job, compute_handler, internal_storage):
     py_local_version = version_str(sys.version_info)
     py_remote_version = runtime_meta['python_version']
     if py_local_version != py_remote_version:
-        raise Exception(("The indicated runtime '{}' is running Python {} and it "
-                         "is not compatible with the local Python version {}")
-                        .format(job.runtime_name, py_remote_version, py_local_version))
+        import warnings
+        warnings.warn(f"The indicated runtime '{job.runtime_name}' is running Python {py_remote_version} and it "
+                         f"is not compatible with the local Python version {py_local_version}")
