@@ -24,6 +24,7 @@ import zipfile
 import subprocess
 import botocore.exceptions
 import base64
+import pickle
 
 from botocore.httpsession import URLLib3Session
 from botocore.awsrequest import AWSRequest
@@ -32,6 +33,7 @@ from botocore.auth import SigV4Auth
 from lithopserve import utils
 from lithopserve.version import __version__
 from lithopserve.constants import COMPUTE_CLI_MSG
+from lithopserve.job.job_installed_function import job_installed_function
 
 from . import config
 
@@ -336,12 +338,17 @@ class AWSLambdaBackend:
             msg = 'An error occurred creating/updating action {}: {}'.format(function_name, response)
             raise Exception(msg)
 
-    def build_runtime(self, runtime_name, runtime_file, extra_args=[]):
+    def build_runtime(self, runtime_name, runtime_file, extra_args=[], included_function=job_installed_function):
         """
         Build Lithops container runtime for AWS lambda
         @param runtime_name: name of the runtime to be built
         @param runtime_file: path of a Dockerfile for a container runtime
         """
+        func_str = pickle.dumps(job_installed_function)
+        func_module_str = pickle.dumps({'func': func_str, 'module_data': {}}, -1)
+        with open('func.pickle', 'wb') as f:
+            f.write(func_module_str)
+
         logger.info(f'Building runtime {runtime_name} from {runtime_file}')
 
         docker_path = utils.get_docker_path()

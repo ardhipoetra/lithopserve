@@ -25,6 +25,8 @@ import copy
 import time
 import yaml
 import urllib3
+import pickle
+
 from kubernetes import client, watch
 from kubernetes.config import load_kube_config, \
     load_incluster_config, list_kube_config_contexts, \
@@ -34,6 +36,7 @@ from kubernetes.client.rest import ApiException
 from lithopserve import utils
 from lithopserve.version import __version__
 from lithopserve.constants import COMPUTE_CLI_MSG, JOBS_PREFIX
+from lithopserve.job.job_installed_function import job_installed_function
 
 from . import config
 
@@ -124,10 +127,15 @@ class KubernetesBackend:
             self.name, self.k8s_config, 'lithopserve-kubernetes-default'
         )
 
-    def build_runtime(self, docker_image_name, dockerfile, extra_args=[]):
+    def build_runtime(self, docker_image_name, dockerfile, extra_args=[], included_function=job_installed_function):
         """
         Builds a new runtime from a Docker file and pushes it to the registry
         """
+        func_str = pickle.dumps(job_installed_function)
+        func_module_str = pickle.dumps({'func': func_str, 'module_data': {}}, -1)
+        with open('func.pickle', 'wb') as f:
+            f.write(func_module_str)
+
         logger.info(f'Building runtime {docker_image_name} from {dockerfile or "Dockerfile"}')
 
         docker_path = utils.get_docker_path()
@@ -307,7 +315,7 @@ class KubernetesBackend:
         logger.debug('Note that this backend does not manage runtimes')
         return []
 
-    def _create_pod(self, pod, pod_name, cpu, memory):
+    def _create_pod(self, pod, pod_name, cpu, memory, gpu=False):
         pod["metadata"]["name"] = f"lithopserve-pod-{pod_name}"
         node_name = re.sub(r'-\d+$', '', pod_name)
         pod["spec"]["nodeName"] = node_name
@@ -315,6 +323,10 @@ class KubernetesBackend:
         pod["spec"]["containers"][0]["resources"]["requests"]["cpu"] = str(cpu)
         pod["spec"]["containers"][0]["resources"]["requests"]["memory"] = memory
         pod["metadata"]["labels"] = {"app": "lithopserve-pod"}
+
+        # Add GPU resource request if GPU is enabled
+        if gpu:
+            pod["spec"]["containers"][0]["resources"]["requests"]["nvidia.com/gpu"] = str(gpu)
 
         payload = {
             'log_level': 'DEBUG',

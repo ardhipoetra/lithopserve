@@ -178,12 +178,12 @@ class Invoker:
         """
         Run a job
         """
-        if self.include_function:
-            logger.debug('ExecutorID {} | JobID {} - Runtime include function feature '
-                         ' is activated' .format(job.executor_id, job.job_id))
-            job.runtime_name = self.runtime_name
-            extend_runtime(job, self.compute_handler, self.internal_storage)
-            self.runtime_name = job.runtime_name
+        # if self.include_function:
+        #     logger.debug('ExecutorID {} | JobID {} - Runtime include function feature '
+        #                  ' is activated' .format(job.executor_id, job.job_id))
+        #     job.runtime_name = self.runtime_name
+        #     extend_runtime(job, self.compute_handler, self.internal_storage)
+        #     self.runtime_name = job.runtime_name
 
         logger.info('ExecutorID {} | JobID {} - Starting function '
                     'invocation: {}() - Total: {} activations'
