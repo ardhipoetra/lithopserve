@@ -192,16 +192,30 @@ class ResponseFuture:
             if internal_storage is None:
                 internal_storage = InternalStorage(self._storage_config)
             check_storage_path(internal_storage.get_storage_config(), self._storage_path)
-            self._call_status = internal_storage.get_call_status(self.executor_id, self.job_id, self.call_id)
+
+            # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+            call_status = internal_storage.get_call_status(self.executor_id, self.job_id, self.call_id)
             self._status_query_count += 1
 
-            if check_only:
-                return self._call_status
+            # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+            if call_status is not None or (self._call_status is None or self._call_status['type'] != '__init__'):
+                self._call_status = call_status
 
-            while self._call_status is None:
+            if check_only:
+                # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+                return call_status
+
+            # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+            while call_status is None:
                 time.sleep(self.GET_RESULT_SLEEP_SECS)
-                self._call_status = internal_storage.get_call_status(self.executor_id, self.job_id, self.call_id)
+
+                # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+                call_status = internal_storage.get_call_status(self.executor_id, self.job_id, self.call_id)
                 self._status_query_count += 1
+
+            # mig 12jul2023 - Patch by Sergey @ SCONTAIN
+            self._call_status = call_status
+
             self._host_status_done_tstamp = time.time()
 
         self.stats['host_status_done_tstamp'] = self._host_status_done_tstamp or time.time()
