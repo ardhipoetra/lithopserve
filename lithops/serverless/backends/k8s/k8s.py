@@ -315,13 +315,8 @@ class KubernetesBackend:
         logger.debug('Note that this backend does not manage runtimes')
         return []
 
-<<<<<<< HEAD:lithops/serverless/backends/k8s/k8s.py
-    def _create_pod(self, pod, pod_name, cpu, memory):
-        pod["metadata"]["name"] = f"lithops-pod-{pod_name}"
-=======
     def _create_pod(self, pod, pod_name, cpu, memory, gpu=False):
-        pod["metadata"]["name"] = f"lithopserve-pod-{pod_name}"
->>>>>>> 19910d0e... Avoid extended function:lithopserve/serverless/backends/k8s/k8s.py
+        pod["metadata"]["name"] = f"lithops-pod-{pod_name}"
         node_name = re.sub(r'-\d+$', '', pod_name)
         pod["spec"]["nodeName"] = node_name
         pod["spec"]["containers"][0]["image"] = self.image
@@ -468,8 +463,10 @@ class KubernetesBackend:
         master_res['metadata']['name'] = self.master_name
         master_res['metadata']['namespace'] = self.namespace
         master_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-        master_res['metadata']['labels']['user'] = self.user
+        # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+        master_res['metadata']['labels']['user'] = self.user.replace('@', '--')
         master_res['spec']['activeDeadlineSeconds'] = self.k8s_config['master_timeout']
+        
 
         container = master_res['spec']['template']['spec']['containers'][0]
         container['image'] = docker_image_name
@@ -656,7 +653,8 @@ class KubernetesBackend:
             job_res['metadata']['name'] = activation_id
             job_res['metadata']['namespace'] = self.namespace
             job_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-            job_res['metadata']['labels']['user'] = self.user
+            # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+            job_res['metadata']['labels']['user'] = self.user.replace('@', '--')
 
             job_res['spec']['activeDeadlineSeconds'] = self.k8s_config['runtime_timeout']
             job_res['spec']['parallelism'] = total_workers
@@ -705,7 +703,8 @@ class KubernetesBackend:
         job_res['metadata']['name'] = meta_job_name
         job_res['metadata']['namespace'] = self.namespace
         job_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-        job_res['metadata']['labels']['user'] = self.user
+        # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+        job_res['metadata']['labels']['user'] = self.user.replace('@', '--')
 
         container = job_res['spec']['template']['spec']['containers'][0]
         container['image'] = docker_image_name
