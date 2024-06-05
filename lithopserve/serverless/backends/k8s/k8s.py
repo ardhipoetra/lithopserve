@@ -456,7 +456,8 @@ class KubernetesBackend:
         master_res['metadata']['name'] = self.master_name
         master_res['metadata']['namespace'] = self.namespace
         master_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-        master_res['metadata']['labels']['user'] = self.user
+        # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+        master_res['metadata']['labels']['user'] = self.user.replace('@', '--')
 
         container = master_res['spec']['template']['spec']['containers'][0]
         container['image'] = docker_image_name
@@ -615,7 +616,8 @@ class KubernetesBackend:
             job_res['metadata']['name'] = activation_id
             job_res['metadata']['namespace'] = self.namespace
             job_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-            job_res['metadata']['labels']['user'] = self.user
+            # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+            job_res['metadata']['labels']['user'] = self.user.replace('@', '--')
 
             job_res['spec']['activeDeadlineSeconds'] = self.k8s_config['runtime_timeout']
             job_res['spec']['parallelism'] = total_workers
@@ -664,7 +666,8 @@ class KubernetesBackend:
         job_res['metadata']['name'] = meta_job_name
         job_res['metadata']['namespace'] = self.namespace
         job_res['metadata']['labels']['version'] = 'lithops_v' + __version__
-        job_res['metadata']['labels']['user'] = self.user
+        # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Added '.replace('@', '--')'
+        job_res['metadata']['labels']['user'] = self.user.replace('@', '--')
 
         container = job_res['spec']['template']['spec']['containers'][0]
         container['image'] = docker_image_name
