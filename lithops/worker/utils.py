@@ -29,7 +29,7 @@ from lithops.constants import MODULES_DIR
 
 try:
     import psutil
-    psutil_found = True
+    psutil_found = False
 except ModuleNotFoundError:
     psutil_found = False
 
