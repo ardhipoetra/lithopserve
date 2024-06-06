@@ -741,7 +741,7 @@ class KubernetesBackend:
                 for event in w.stream(self.batch_api.list_namespaced_job,
                                       namespace=self.namespace,
                                       field_selector=f"metadata.name={meta_job_name}",
-                                      timeout_seconds=10):
+                                      timeout_seconds=30):
                     failed = event['object'].status.failed
                     done = event['object'].status.succeeded
                     logger.debug('...')
