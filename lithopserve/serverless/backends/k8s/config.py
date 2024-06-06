@@ -25,12 +25,43 @@ DEFAULT_CONFIG_KEYS = {
     'docker_server': 'docker.io'
 }
 
+# mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+SCONE_CONFIG_KEYS = {
+    'scone_master_requests_cpu': '0.1',
+    'scone_master_requests_memory': '384Mi',
+    'scone_master_limits_cpu': '2',
+    'scone_master_limits_memory': '2048Mi',
+    'scone_master_limits_sgx': '1',
+    'scone_master_heap'            : '256M',
+    'scone_master_mode'            : 'AUTO',
+    'scone_master_allow_dl_open'   : '0',
+    'scone_master_fork'            : '0',
+    'scone_master_syslibs'         : '0',
+
+    'scone_worker_requests_cpu': '0.1',
+    'scone_worker_requests_memory': '768Mi',
+    'scone_worker_limits_cpu': '2',
+    'scone_worker_limits_memory': '2048Mi',
+    'scone_worker_limits_sgx': '1',
+    'scone_worker_heap'            : '512M',
+    'scone_worker_mode'            : 'AUTO',
+    'scone_worker_allow_dl_open'   : '0',
+    'scone_worker_fork'            : '0',
+    'scone_worker_syslibs'         : '0',
+
+    'scone_cas_addr'        : '172.20.0.1',
+    'scone_las_addr'        : '172.20.0.1',
+    'scone_config_id'       : '',
+
+    'k8s_master_ip'   : '0.0.0.0'
+}
+
 DEFAULT_GROUP = "batch"
 DEFAULT_VERSION = "v1"
 MASTER_NAME = "lithopserve-master"
 MASTER_PORT = 8080
 
-FH_ZIP_LOCATION = os.path.join(os.getcwd(), 'lithops_k8s.zip')
+FH_ZIP_LOCATION = os.path.join(os.getcwd(), 'lithops_k8sc.zip')
 
 
 DOCKERFILE_DEFAULT = """
@@ -77,10 +108,12 @@ metadata:
     version: lithops_vX.X.X
     user: lithopserve-user
 spec:
-  activeDeadlineSeconds: 600
-  ttlSecondsAfterFinished: 60
+  # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Doubling the timeouts
+  activeDeadlineSeconds: 1200
+  ttlSecondsAfterFinished: 120
   parallelism: 1
-  backoffLimit: 0
+  # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Rerun if failed at most 6 times
+  backoffLimit: 6
   template:
     spec:
       restartPolicy: Never
@@ -93,6 +126,7 @@ spec:
             - "/lithopserve/lithopsentry.py"
             - "$(ACTION)"
             - "$(DATA)"
+#            - "$(MASTER_POD_IP)"
           env:
             - name: ACTION
               value: ''
@@ -100,17 +134,45 @@ spec:
               value: ''
             - name: MASTER_POD_IP
               value: ''
+              # mig 14apr2024 - Patch by Miguel @ SCONTAIN. SCONE related variables
+            - name: SCONE_HEAP
+              value: '4G'
+            - name: SCONE_LOG
+              value: warning              
+            #   # '768M'
+            - name: SCONE_MODE
+              value: 'hw'
+            #   # 'AUTO'
+            # - name: SCONE_ALLOW_DLOPEN
+            #   value: ''
+            #   # '2'
+            - name: SCONE_FORK
+              value: '1'
+              # '1'
+            # - name: SCONE_SYSLIBS
+            #   value: ''
+            #   # '1'
+            # - name: SCONE_CAS_ADDR
+            #   value: ''
+            #   # '172.20.0.1'
+            # - name: SCONE_LAS_ADDR
+            #   value: ''
+            #   # '172.20.0.1'
+            # - name: SCONE_CONFIG_ID
+            #   value: ''
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
           resources:
+            # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Increased initial memory and cpu and memory limits
             requests:
               cpu: '1'
-              memory: 512Mi
+              # memory: 12288Mi
             limits:
-              cpu: '1'
-              memory: 512Mi
+              # cpu: '4'
+              # memory: 24576Mi
+              sgx.intel.com/enclave: 1
       imagePullSecrets:
         - name: lithopserve-regcred
 """
@@ -129,10 +191,15 @@ spec:
         - "/lithopserve/lithopsentry.py"
         - "--"
         - "--"
+      env:
+        - name: SCONE_HEAP
+        value: '2G'
+        - name: SCONE_LOG
+          value: warning        
       resources:
         requests:
           cpu: '1'
-          memory: '512Mi'
+          memory: '4096Mi'
 """
 
 
@@ -146,6 +213,11 @@ def load_config(config_data):
         registry = config_data['k8s']['docker_server']
         if runtime.count('/') == 1 and registry not in runtime:
             config_data['k8s']['runtime'] = f'{registry}/{runtime}'
+
+    # mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+    for key in SCONE_CONFIG_KEYS:
+        if key not in config_data['k8s']:
+            config_data['k8s'][key] = SCONE_CONFIG_KEYS[key]
 
     if config_data['k8s'].get('rabbitmq_executor', False):
         config_data['k8s']['amqp_url'] = config_data['rabbitmq']['amqp_url']
