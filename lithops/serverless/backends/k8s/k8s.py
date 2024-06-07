@@ -315,18 +315,13 @@ class KubernetesBackend:
         logger.debug('Note that this backend does not manage runtimes')
         return []
 
-<<<<<<< HEAD:lithops/serverless/backends/k8s/k8s.py
-    def _create_pod(self, pod, pod_name, cpu, memory):
-        pod["metadata"]["name"] = f"lithops-pod-{pod_name}"
-=======
     def _create_pod(self, pod, pod_name, cpu, memory, gpu=False):
-        pod["metadata"]["name"] = f"lithopserve-pod-{pod_name}"
->>>>>>> 19910d0e... Avoid extended function:lithopserve/serverless/backends/k8s/k8s.py
+        pod["metadata"]["name"] = f"lithops-pod-{pod_name}"
         node_name = re.sub(r'-\d+$', '', pod_name)
         pod["spec"]["nodeName"] = node_name
         pod["spec"]["containers"][0]["image"] = self.image
         pod["spec"]["containers"][0]["resources"]["requests"]["cpu"] = str(cpu)
-        pod["spec"]["containers"][0]["resources"]["requests"]["memory"] = memory
+        # pod["spec"]["containers"][0]["resources"]["requests"]["memory"] = memory
         pod["metadata"]["labels"] = {"app": "lithops-pod"}
 
         # Add GPU resource request if GPU is enabled
@@ -511,7 +506,7 @@ class KubernetesBackend:
             # Get the pod info
             self.current_runtime = pod.spec.containers[0].image
             pod_resource_cpu = int(pod.spec.containers[0].resources.requests.get('cpu', '0m'))
-            pod_resource_memory = pod.spec.containers[0].resources.requests.get('memory', '0Mi')
+            pod_resource_memory = '0Mi' #pod.spec.containers[0].resources.requests.get('memory', '0Mi')
 
             multiples_pods_per_node = re.search(r'-\d+(?<!-0)$', pod_name)
 
@@ -636,9 +631,9 @@ class KubernetesBackend:
             container['env'][1]['value'] = utils.dict_to_b64str(job_payload)
             container['env'][2]['value'] = master_ip
 
-            container['resources']['requests']['memory'] = f'{runtime_memory}Mi'
+            # container['resources']['requests']['memory'] = f'{runtime_memory}Mi'
             container['resources']['requests']['cpu'] = str(self.k8s_config['runtime_cpu'])
-            container['resources']['limits']['memory'] = f'{runtime_memory}Mi'
+            # container['resources']['limits']['memory'] = f'{runtime_memory}Mi'
             container['resources']['limits']['cpu'] = str(self.k8s_config['runtime_cpu'])
 
             logger.debug(f'ExecutorID {executor_id} | JobID {job_id} - Going '
