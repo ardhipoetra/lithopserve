@@ -135,6 +135,10 @@ spec:
           memory: '512Mi'
 """
 
+MASTER_CONFIG_RESOURCES = {
+    'requests': {'cpu': '0.5', 'memory': '512Mi'},
+    'limits': {'cpu': '1', 'memory': '512Mi'}
+}
 
 def load_config(config_data):
     for key in DEFAULT_CONFIG_KEYS:
