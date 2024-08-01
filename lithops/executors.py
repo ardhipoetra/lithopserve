@@ -792,7 +792,16 @@ class FunctionExecutor:
 
         logger.info(f'ExecutorID {self.executor_id} - Getting execution stats')
 
-        stats_to_plot = [f.stats for f in ftrs_to_plot]
+        stats_to_plot = []
+        for f in ftrs_to_plot:
+            stats_one = f.stats
+            stats_one['activation_id'] = f.activation_id
+            stats_one['call_id'] = f.call_id
+            stats_one['executor_id'] = f.executor_id
+            stats_one['job_id'] = f.job_id
+            stats_one['job_key'] = f.job_key
+            stats_one['logs'] = f.logs
+            stats_to_plot.append(f.stats)
 
         return stats_to_plot
 
