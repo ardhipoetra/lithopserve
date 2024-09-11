@@ -136,6 +136,8 @@ spec:
             - name: MASTER_POD_IP
               value: ''
               # mig 14apr2024 - Patch by Miguel @ SCONTAIN. SCONE related variables
+            - name: SCONE_EDMM_MODE
+              value: 'enable'
             - name: SCONE_HEAP
               value: '4G'
             - name: SCONE_LOG
@@ -165,6 +167,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+          securityContext:
+            privileged: true
           resources:
             # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Increased initial memory and cpu and memory limits
             requests:
@@ -196,7 +200,9 @@ spec:
         - name: SCONE_HEAP
         value: '2G'
         - name: SCONE_LOG
-          value: warning        
+          value: warning     
+        - name: SCONE_EDMM_MODE
+              value: 'enable'   
       resources:
         requests:
           cpu: '1'
@@ -205,7 +211,7 @@ spec:
 
 MASTER_CONFIG_RESOURCES = {
     'requests': {'cpu': '0.5', 'memory': '512Mi'},
-    'limits': {'cpu': '1', 'memory': '512Mi'}
+    'limits': {'cpu': '1', 'memory': '3612Mi'}
 }
 
 def load_config(config_data):
