@@ -27,7 +27,7 @@ Lithops is specially suited for highly-parallel programs with little or no need 
 1. Install Lithops from the PyPi repository:
 
     ```bash
-    pip install lithops
+    pip install git+https://github.com/cIoudlab-urv/lithopserve_v3.0.1
     ```
 
 2. Execute a *Hello World* function:
