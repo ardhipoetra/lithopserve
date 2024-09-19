@@ -119,8 +119,11 @@ class Invoker:
 
         # Verify python version and lithops version
         if __version__ != runtime_meta['lithops_version']:
-            raise Exception("Lithops version mismatch. Host version: {} - Runtime version: {}"
-                            .format(__version__, runtime_meta['lithops_version']))
+            # raise Exception("Lithops version mismatch. Host version: {} - Runtime version: {}"
+            #                 .format(__version__, runtime_meta['lithops_version']))
+            # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Versions mismatch tries to assert recent release instead of the installed
+            print(f"..:DBG:bug of not picking the correct version local: {__version__} remote: {runtime_meta['lithops_version']}. resetting and moving forward")
+            runtime_meta['lithops_version'] = __version__
 
         py_local_version = version_str(sys.version_info)
         py_remote_version = runtime_meta['python_version']
