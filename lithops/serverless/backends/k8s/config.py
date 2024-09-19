@@ -158,7 +158,10 @@ spec:
               limits:
                 cpu: '8'
                 memory: 8192Mi
-                sgx.k8s.io/sgx: "1" 
+                sgx.k8s.io/sgx: "1"
+          securityContext:
+            capabilities:
+              add: ["SYS_RAWIO"]
       imagePullSecrets:
         - name: lithops-regcred
 """
