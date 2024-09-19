@@ -488,13 +488,13 @@ class KubernetesBackend:
         # mig 09may2024 - Patch by Miguel @ SCONTAIN. In order: added SCONE environment variables via configuration
         # mig 13may2024 - TODO: remove
         # mig 15may2024 - TODO: do not remove
-        container['env'][3]['value'] =  str(self.k8s_config['scone_master_heap'])
-        container['env'][4]['value'] =  str(self.k8s_config['scone_master_mode'])
-        container['env'][5]['value'] =  str(self.k8s_config['scone_master_allow_dl_open'])
-        container['env'][6]['value'] =  str(self.k8s_config['scone_master_fork'])
-        container['env'][7]['value'] =  str(self.k8s_config['scone_master_syslibs'])
-        container['env'][8]['value'] =  str(self.k8s_config['scone_cas_addr'])
-        container['env'][9]['value'] =  str(self.k8s_config['scone_las_addr'])
+        container['env'][4]['value'] =  str(self.k8s_config['scone_master_heap'])
+        container['env'][5]['value'] =  str(self.k8s_config['scone_master_mode'])
+        container['env'][6]['value'] =  str(self.k8s_config['scone_master_allow_dl_open'])
+        container['env'][7]['value'] =  str(self.k8s_config['scone_master_fork'])
+        container['env'][8]['value'] =  str(self.k8s_config['scone_master_syslibs'])
+        container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
+        container['env'][10]['value'] =  str(self.k8s_config['scone_las_addr'])
         # if str(self.k8s_config['scone_config_id']) == '':
         #     del container['env'][10]
         # else:
