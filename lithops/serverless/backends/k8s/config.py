@@ -25,6 +25,34 @@ DEFAULT_CONFIG_KEYS = {
     'docker_server': 'docker.io'
 }
 
+# mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+SCONE_CONFIG_KEYS = {
+    'scone_master_requests_cpu': '0.1',
+    'scone_master_requests_memory': '384Mi',
+    'scone_master_limits_cpu': '2',
+    'scone_master_limits_memory': '2048Mi',
+    'scone_master_limits_sgx': '1',
+    'scone_master_heap'            : '256M',
+    'scone_master_mode'            : 'AUTO',
+    'scone_master_allow_dl_open'   : '0',
+    'scone_master_fork'            : '0',
+    'scone_master_syslibs'         : '0',
+    'scone_worker_requests_cpu': '0.1',
+    'scone_worker_requests_memory': '768Mi',
+    'scone_worker_limits_cpu': '2',
+    'scone_worker_limits_memory': '2048Mi',
+    'scone_worker_limits_sgx': '1',
+    'scone_worker_heap'            : '512M',
+    'scone_worker_mode'            : 'AUTO',
+    'scone_worker_allow_dl_open'   : '0',
+    'scone_worker_fork'            : '0',
+    'scone_worker_syslibs'         : '0',
+    'scone_cas_addr'        : '172.20.0.1',
+    'scone_las_addr'        : '172.20.0.1',
+    'scone_config_id'       : '',
+    'k8s_master_ip'   : '0.0.0.0'
+}
+
 DEFAULT_GROUP = "batch"
 DEFAULT_VERSION = "v1"
 MASTER_NAME = "lithops-master"
@@ -127,10 +155,10 @@ spec:
             # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Increased initial memory and cpu and memory limits
               requests:
                 cpu: '0.2'
-              memory: 4096Mi
+                memory: 2048Mi
               limits:
-              cpu: '8'
-              memory: 8192Mi
+                cpu: '8'
+                memory: 8192Mi
               sgx.k8s.io/sgx: "1"                  
       imagePullSecrets:
         - name: lithops-regcred
@@ -157,8 +185,8 @@ spec:
 """
 
 MASTER_CONFIG_RESOURCES = {
-    'requests': {'cpu': '0.5', 'memory': '512Mi'},
-    'limits': {'cpu': '1', 'memory': '512Mi'}
+    'requests': {'cpu': '0.5', 'memory': '2096Mi'},
+    'limits': {'cpu': '1', 'memory': '8292Mi'}
 }
 
 def load_config(config_data):
@@ -171,3 +199,9 @@ def load_config(config_data):
         registry = config_data['k8s']['docker_server']
         if runtime.count('/') == 1 and registry not in runtime:
             config_data['k8s']['runtime'] = f'{registry}/{runtime}'
+
+    # mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+    for key in SCONE_CONFIG_KEYS:
+        if key not in config_data['k8s']:
+            config_data['k8s'][key] = SCONE_CONFIG_KEYS[key]
+
