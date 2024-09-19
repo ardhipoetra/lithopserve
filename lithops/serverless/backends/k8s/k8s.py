@@ -122,7 +122,16 @@ class KubernetesBackend:
             cmd = f'{docker_path} build -t {docker_image_name} -f {dockerfile} . '
         else:
             cmd = f'{docker_path} build -t {docker_image_name} . '
-        cmd = cmd + ' '.join(extra_args)
+        # mig 13may2024 - Patch by Miguel @ SCONTAIN. Informing Master IP via command line
+        # new_extra_args=extra_args.copy()
+        # new_extra_args.append(self.k8s_config['k8s_master_ip'])
+        cmd = cmd + ' '.join(extra_args) # change to new_extra_args when uncomment
+        # logger.debug(f"..:DBG:self.k8s_config[k8s_master_ip]:"+self.k8s_config['k8s_master_ip'])
+        # print(f"..:DBG:self.k8s_config[k8s_master_ip]:"+self.k8s_config['k8s_master_ip'])
+        # with open('/k8s.out', 'a', encoding="utf-8") as _f:
+        #     _f.write(f"..:DBG:self.k8s_config[k8s_master_ip]:"+self.k8s_config['k8s_master_ip']+"\n")
+        #     _f.write(f"..:DBG:original extra_args:"+' '.join(extra_args)+"\n")
+        #     _f.write(f"..:DBG:subs new_extra_args:"+' '.join(new_extra_args)+"\n")
 
         try:
             entry_point = os.path.join(os.path.dirname(__file__), 'entry_point.py')
@@ -327,6 +336,21 @@ class KubernetesBackend:
         payload = {'log_level': 'DEBUG'}
         container['env'][1]['value'] = utils.dict_to_b64str(payload)
 
+        logger.info(f"Cont: {container}")
+
+        # mig 09may2024 - Patch by Miguel @ SCONTAIN. In order: added SCONE environment variables via configuration
+        container['env'][4]['value'] =  str(self.k8s_config['scone_master_heap'])
+        container['env'][5]['value'] =  str(self.k8s_config['scone_master_mode'])
+        container['env'][6]['value'] =  str(self.k8s_config['scone_master_allow_dl_open'])
+        container['env'][7]['value'] =  str(self.k8s_config['scone_master_fork'])
+        container['env'][8]['value'] =  str(self.k8s_config['scone_master_syslibs'])
+        container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
+        container['env'][10]['value'] =  str(self.k8s_config['scone_las_addr'])
+        # if str(self.k8s_config['scone_config_id']) == '':
+        #     del container['env'][11]
+        # else:
+        #     container['env'][11]['value'] = str(self.k8s_config['scone_config_id'])
+
         if not all(key in self.k8s_config for key in ["docker_user", "docker_password"]):
             del master_res['spec']['template']['spec']['imagePullSecrets']
 
@@ -387,10 +411,39 @@ class KubernetesBackend:
         container['env'][1]['value'] = utils.dict_to_b64str(job_payload)
         container['env'][2]['value'] = master_ip
 
-        container['resources']['requests']['memory'] = f'{runtime_memory}Mi'
-        container['resources']['requests']['cpu'] = str(self.k8s_config['runtime_cpu'])
-        container['resources']['limits']['memory'] = f'{runtime_memory}Mi'
-        container['resources']['limits']['cpu'] = str(self.k8s_config['runtime_cpu'])
+        # mig 13may2024 - Patch by Miguel @ SCONTAIN. Getting Master IP deployed to pass via command line to entry_point, run_job
+        self.k8s_config['k8s_master_ip'] = master_ip
+        # mig 09may2024 - Patch by Miguel @ SCONTAIN. In order: added SCONE environment variables via configuration
+        container['env'][3]['value'] =  str(self.k8s_config['scone_worker_heap'])
+        container['env'][4]['value'] =  str(self.k8s_config['scone_worker_mode'])
+        container['env'][5]['value'] =  str(self.k8s_config['scone_worker_allow_dl_open'])
+        container['env'][6]['value'] =  str(self.k8s_config['scone_worker_fork'])
+        container['env'][7]['value'] =  str(self.k8s_config['scone_worker_syslibs'])
+        container['env'][8]['value'] =  str(self.k8s_config['scone_cas_addr'])
+        container['env'][9]['value']  = str(self.k8s_config['scone_las_addr'])
+        # if str(self.k8s_config['scone_config_id']) == '':
+        #     del container['env'][10]
+        # else:
+        #     container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
+        # container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
+
+        logger.debug(f'Value from str(self.k8s_config[scone_worker_heap])='+str(self.k8s_config['scone_worker_heap']))
+        logger.debug(f'Value from str(self.k8s_config[scone_worker_mode])='+str(self.k8s_config['scone_worker_mode']))
+        logger.debug(f'Value from str(self.k8s_config[scone_worker_allow_dl_open])='+str(self.k8s_config['scone_worker_allow_dl_open']))
+        logger.debug(f'Value from str(self.k8s_config[scone_worker_fork])='+str(self.k8s_config['scone_worker_fork']))
+        logger.debug(f'Value from str(self.k8s_config[scone_worker_syslibs])='+str(self.k8s_config['scone_worker_syslibs']))
+        logger.debug(f'Value from str(self.k8s_config[scone_cas_addr])='+str(self.k8s_config['scone_cas_addr']))
+        logger.debug(f'Value from str(self.k8s_config[scone_las_addr])='+str(self.k8s_config['scone_las_addr']))
+        # logger.debug(f'Value from str(self.k8s_config[scone_config_id])='+str(self.k8s_config['scone_config_id']))
+        logger.debug(f'Value from str(self.k8s_config[k8s_master_ip])='+str(self.k8s_config['k8s_master_ip']))
+
+        # mig 09may2024 - Patch by Miguel @ SCONTAIN. Changed source of values to avoid misplacement
+        container['resources']['requests']['memory'] = str(self.k8s_config['scone_worker_requests_memory']) # f'{runtime_memory}Mi'
+        container['resources']['requests']['cpu'] = str(self.k8s_config['scone_worker_requests_cpu']) # str(self.k8s_config['runtime_cpu'])
+        container['resources']['limits']['memory'] = str(self.k8s_config['scone_worker_limits_memory']) # f'{runtime_memory}Mi'
+        container['resources']['limits']['cpu'] = str(self.k8s_config['scone_worker_limits_cpu']) # str(self.k8s_config['runtime_cpu'])
+        # mig 09may2024 - Patch by Miguel @ SCONTAIN. Added support for SGX
+        container['resources']['limits']['sgx.k8s.io/sgx'] = str(self.k8s_config['scone_worker_limits_sgx'])
 
         logger.debug(f'ExecutorID {executor_id} | JobID {job_id} - Going '
                      f'to run {total_calls} activations in {total_workers} workers')
@@ -431,6 +484,21 @@ class KubernetesBackend:
         container['imagePullPolicy'] = 'Always'
         container['env'][0]['value'] = 'get_metadata'
         container['env'][1]['value'] = utils.dict_to_b64str(payload)
+
+        # mig 09may2024 - Patch by Miguel @ SCONTAIN. In order: added SCONE environment variables via configuration
+        # mig 13may2024 - TODO: remove
+        # mig 15may2024 - TODO: do not remove
+        container['env'][3]['value'] =  str(self.k8s_config['scone_master_heap'])
+        container['env'][4]['value'] =  str(self.k8s_config['scone_master_mode'])
+        container['env'][5]['value'] =  str(self.k8s_config['scone_master_allow_dl_open'])
+        container['env'][6]['value'] =  str(self.k8s_config['scone_master_fork'])
+        container['env'][7]['value'] =  str(self.k8s_config['scone_master_syslibs'])
+        container['env'][8]['value'] =  str(self.k8s_config['scone_cas_addr'])
+        container['env'][9]['value'] =  str(self.k8s_config['scone_las_addr'])
+        # if str(self.k8s_config['scone_config_id']) == '':
+        #     del container['env'][10]
+        # else:
+        #     container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
 
         if not all(key in self.k8s_config for key in ["docker_user", "docker_password"]):
             del job_res['spec']['template']['spec']['imagePullSecrets']
