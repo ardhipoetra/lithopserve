@@ -414,13 +414,13 @@ class KubernetesBackend:
         # mig 13may2024 - Patch by Miguel @ SCONTAIN. Getting Master IP deployed to pass via command line to entry_point, run_job
         self.k8s_config['k8s_master_ip'] = master_ip
         # mig 09may2024 - Patch by Miguel @ SCONTAIN. In order: added SCONE environment variables via configuration
-        container['env'][3]['value'] =  str(self.k8s_config['scone_worker_heap'])
-        container['env'][4]['value'] =  str(self.k8s_config['scone_worker_mode'])
-        container['env'][5]['value'] =  str(self.k8s_config['scone_worker_allow_dl_open'])
-        container['env'][6]['value'] =  str(self.k8s_config['scone_worker_fork'])
-        container['env'][7]['value'] =  str(self.k8s_config['scone_worker_syslibs'])
-        container['env'][8]['value'] =  str(self.k8s_config['scone_cas_addr'])
-        container['env'][9]['value']  = str(self.k8s_config['scone_las_addr'])
+        container['env'][4]['value'] =  str(self.k8s_config['scone_worker_heap'])
+        container['env'][5]['value'] =  str(self.k8s_config['scone_worker_mode'])
+        container['env'][6]['value'] =  str(self.k8s_config['scone_worker_allow_dl_open'])
+        container['env'][7]['value'] =  str(self.k8s_config['scone_worker_fork'])
+        container['env'][8]['value'] =  str(self.k8s_config['scone_worker_syslibs'])
+        container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
+        container['env'][10]['value']  = str(self.k8s_config['scone_las_addr'])
         # if str(self.k8s_config['scone_config_id']) == '':
         #     del container['env'][10]
         # else:
@@ -450,6 +450,8 @@ class KubernetesBackend:
 
         if not all(key in self.k8s_config for key in ["docker_user", "docker_password"]):
             del job_res['spec']['template']['spec']['imagePullSecrets']
+
+        logger.debug(f"The job res: {job_res}")
 
         try:
             self.batch_api.create_namespaced_job(
