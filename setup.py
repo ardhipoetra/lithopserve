@@ -17,7 +17,7 @@ install_requires = [
     'requests',
     'seaborn',
     'paramiko',
-    'matplotlib',
+    # 'matplotlib',
     'kubernetes',
     'ibm-cos-sdk',
     'ibm-code-engine-sdk',

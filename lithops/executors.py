@@ -518,6 +518,8 @@ class FunctionExecutor:
         :param fs: list of futures.
         :param dst: destination path to save .png plots.
         """
+        pass
+        """
         ftrs = self.futures if not fs else fs
 
         if isinstance(ftrs, ResponseFuture):
@@ -535,7 +537,7 @@ class FunctionExecutor:
         logger.info(f'ExecutorID {self.executor_id} - Creating execution plots')
 
         create_timeline(ftrs_to_plot, dst)
-        create_histogram(ftrs_to_plot, dst)
+        create_histogram(ftrs_to_plot, dst) """
 
     def clean(
         self,
