@@ -96,7 +96,7 @@ class KubernetesBackend:
         logger.info(f"{msg} - Namespace: {self.namespace}")
 
     def _format_job_name(self, runtime_name, runtime_memory, version=__version__):
-        name = f'{runtime_name}-{runtime_memory}-{version}'
+        name = f'{runtime_name}-{runtime_memory}-{version}-{self.user}'
         name_hash = hashlib.sha1(name.encode()).hexdigest()[:10]
 
         return f'lithops-worker-{version.replace(".", "")}-{name_hash}'
@@ -405,7 +405,7 @@ class KubernetesBackend:
         return activation_id
 
     def _generate_runtime_meta(self, docker_image_name):
-        runtime_name = self._format_job_name(docker_image_name, 128)
+        runtime_name = self._format_job_name(docker_image_name, 512)
         meta_job_name = f'{runtime_name}-meta'
 
         logger.info(f"Extracting metadata from: {docker_image_name}")
@@ -494,9 +494,8 @@ class KubernetesBackend:
         Runtime keys are used to uniquely identify runtimes within the storage,
         in order to know which runtimes are installed and which not.
         """
-        jobdef_name = self._format_job_name(docker_image_name, 256, version)
-        user_hash = hashlib.sha1(self.user.encode()).hexdigest()[:6]
-        user_data = os.path.join(self.cluster, self.namespace, user_hash)
+        jobdef_name = self._format_job_name(docker_image_name, 512, version)
+        user_data = os.path.join(self.cluster, self.namespace, self.user)
         runtime_key = os.path.join(self.name, version, user_data, jobdef_name)
 
         return runtime_key

@@ -35,13 +35,12 @@ from lithops.job import create_map_job, create_reduce_job
 from lithops.config import default_config, \
     extract_localhost_config, extract_standalone_config, \
     extract_serverless_config, get_log_info, extract_storage_config
-from lithops.constants import LOCALHOST, CLEANER_DIR, \
-    SERVERLESS, STANDALONE
+from lithops.constants import LOCALHOST, CLEANER_DIR, SERVERLESS, STANDALONE
 from lithops.utils import is_notebook, setup_lithops_logger, \
     is_lithops_worker, create_executor_id, create_futures_list
-from lithops.localhost.localhost import LocalhostHandler
-from lithops.standalone.standalone import StandaloneHandler
-from lithops.serverless.serverless import ServerlessHandler
+from lithops.localhost import LocalhostHandler
+from lithops.standalone import StandaloneHandler
+from lithops.serverless import ServerlessHandler
 from lithops.storage.utils import create_job_key, CloudObject
 from lithops.monitor import JobMonitor
 from lithops.utils import FuturesList
