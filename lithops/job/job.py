@@ -36,6 +36,7 @@ from lithops.constants import MAX_AGG_DATA_SIZE, LOCALHOST,\
 logger = logging.getLogger(__name__)
 
 FUNCTION_CACHE = set()
+MAX_DATA_IN_PAYLOAD = 8 * 1024  # Per invocation. 8KB
 
 
 def create_map_job(
@@ -257,9 +258,9 @@ def _create_job(
         raise Exception(log_msg)
 
     # Upload function and data
-    upload_function = not config['lithops'].get('customized_runtime', False)
+    upload_function = not config[backend].get("runtime_include_function", False)
     upload_data = not (
-        (len(str(data_str)) * job.chunksize < 8 * 1204 for data_str in data_strs)
+        (len(str(data_str)) * job.chunksize < MAX_DATA_IN_PAYLOAD for data_str in data_strs)
         and backend in FAAS_BACKENDS
     )
 
@@ -286,7 +287,7 @@ def _create_job(
         function_hash = hashlib.md5(open(function_file, 'rb').read()).hexdigest()[:16]
         mod_hash = hashlib.md5(repr(sorted(mod_paths)).encode('utf-8')).hexdigest()[:16]
         job.func_key = func_key_suffix
-        job.ext_runtime_uuid = '{}{}'.format(function_hash, mod_hash)
+        job.ext_runtime_uuid = f'{function_hash}{mod_hash}'
         job.local_tmp_dir = os.path.join(CUSTOM_RUNTIME_DIR, job.ext_runtime_uuid)
         _store_func_and_modules(job.local_tmp_dir, job.func_key, func_str, module_data)
         host_job_meta['host_func_upload_time'] = 0

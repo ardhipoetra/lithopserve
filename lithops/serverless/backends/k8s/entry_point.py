@@ -57,9 +57,9 @@ def get_range(jobkey, total_calls, chunksize):
 
 def run_master_server():
     # Start Redis Server in the background
-    logger.info("Starting redis server in Master Pod")
-    os.system("redis-server --bind 0.0.0.0 --daemonize yes")
-    logger.info("Redis server started")
+    # logger.info("Starting redis server in Master Pod")
+    # os.system("redis-server --bind 0.0.0.0 --daemonize yes")
+    # logger.info("Redis server started")
 
     proxy.logger.setLevel(logging.DEBUG)
     proxy.run(debug=True, host='0.0.0.0', port=config.MASTER_PORT, use_reloader=False)
