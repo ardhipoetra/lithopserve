@@ -93,6 +93,18 @@ class Invoker:
         logger.debug(f'ExecutorID {self.executor_id} - Invoker initialized.'
                      f' Max workers: {self.max_workers}')
 
+    def get_runtime_meta(self, job_id, runtime_memory):
+        runtime_memory = runtime_memory or self.runtime_info['runtime_memory'] \
+            if self.mode == SERVERLESS else self.runtime_info['runtime_memory']
+        runtime_timeout = self.runtime_info['runtime_timeout']
+        msg = ('ExecutorID {} | JobID {} - Selected Runtime: {} '
+               .format(self.executor_id, job_id, self.runtime_name))
+        msg = msg + f'- {runtime_memory}MB' if runtime_memory else msg
+        logger.info(msg)
+        runtime_key = self.compute_handler.get_runtime_key(self.runtime_name, runtime_memory, __version__)
+        runtime_meta = self.internal_storage.get_runtime_meta(runtime_key)
+        return runtime_meta
+
     def select_runtime(self, job_id, runtime_memory):
         """
         Return the runtime metadata
@@ -138,6 +150,7 @@ class Invoker:
         payload = {'config': self.config,
                    'chunksize': job.chunksize,
                    'log_level': self.log_level,
+                   'func_name': job.function_name,
                    'func_key': job.func_key,
                    'data_key': job.data_key,
                    'extra_env': job.extra_env,

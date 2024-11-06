@@ -32,9 +32,9 @@ from kubernetes.client.rest import ApiException
 from lithops import utils
 from lithops.version import __version__
 from lithops.constants import COMPUTE_CLI_MSG, JOBS_PREFIX
-
+from lithops.job.job_installed_function import job_installed_function
 from . import config
-
+import pickle
 
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
@@ -114,6 +114,10 @@ class KubernetesBackend:
         Builds a new runtime from a Docker file and pushes it to the registry
         """
         logger.info(f'Building runtime {docker_image_name} from {dockerfile or "Dockerfile"}')
+        func_str = pickle.dumps(job_installed_function)
+        func_module_str = pickle.dumps({'func': func_str, 'module_data': {}}, -1)
+        with open('func.pickle', 'wb') as f:
+            f.write(func_module_str)
 
         docker_path = utils.get_docker_path()
 
