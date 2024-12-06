@@ -158,6 +158,8 @@ spec:
               requests:
                 cpu: '2'
                 memory: 2048Mi
+                cpu: '2'
+                memory: 2048Mi
               limits:
                 cpu: '8'
                 memory: 8192Mi
