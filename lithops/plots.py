@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+""" # ignore plots.py - removing matplotlib
 import os
 import pylab
 import time
@@ -172,3 +172,4 @@ def create_histogram(fs, dst):
 
     fig.savefig(dst)
     pylab.close(fig)
+"""

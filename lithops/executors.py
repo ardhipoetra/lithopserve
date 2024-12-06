@@ -586,6 +586,8 @@ class FunctionExecutor:
         :param fs: list of futures.
         :param dst: destination path to save .png plots.
         """
+        pass
+    """
         stats_to_plot = self.stats(fs=fs)
         if not stats_to_plot:
             return
@@ -598,10 +600,11 @@ class FunctionExecutor:
 
     def stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None):
         """
+    """
         Returns the stats of the current execution.
 
         :param fs: list of futures.
-        """
+       
         ftrs = self.futures if not fs else fs
 
         if isinstance(ftrs, ResponseFuture):
@@ -630,11 +633,12 @@ class FunctionExecutor:
 
     def save_stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None, dst: Optional[str] = None):
         """
+    """
         Saves the stats of the current execution in dst.
 
         :param fs: list of futures.
         :param dst: destination path to save .json file.
-        """
+        
         stats_to_plot = self.stats(fs=fs)
 
         if dst is None:
@@ -647,8 +651,7 @@ class FunctionExecutor:
         with open(dst, 'w') as file:
             json.dump(stats_to_plot, file, indent=4)
 
-
-
+    """
 
     def clean(
         self,
