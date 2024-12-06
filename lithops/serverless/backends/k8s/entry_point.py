@@ -39,6 +39,8 @@ proxy = flask.Flask(__name__)
 
 JOB_INDEXES = {}
 
+# mig 13may2024 - Patch by Miguel @ SCONTAIN. Global variable with Master IP for inter-functions communication
+master_ip_attested = ""
 
 @proxy.route('/get-range/<jobkey>/<total_calls>/<chunksize>', methods=['GET'])
 def get_range(jobkey, total_calls, chunksize):
@@ -94,7 +96,13 @@ def run_job(payload):
     call_ids = payload['call_ids']
     data_byte_ranges = payload['data_byte_ranges']
 
-    master_ip = os.environ['MASTER_POD_IP']
+    # mig 13may2024 - Patch by Miguel @ SCONTAIN. Changed form to get Master IP for both environment or command line (when attested)
+    logger.debug(f"..:DBG:MASTER_POD_IP from env:"+str(os.environ.get('MASTER_POD_IP'))+" and command line:"+master_ip_attested)
+    print(f"..:DBG:MASTER_POD_IP from env:"+str(os.environ.get('MASTER_POD_IP'))+" and command line:"+master_ip_attested)
+    master_ip = os.environ.get('MASTER_POD_IP', master_ip_attested)
+    # master_ip = master_ip_attested
+    if os.environ.get('MASTER_POD_IP') == None:
+        os.environ['MASTER_POD_IP'] = master_ip_attested
 
     job_finished = False
     while not job_finished:
@@ -126,6 +134,9 @@ def run_job(payload):
 if __name__ == '__main__':
     action = sys.argv[1]
     encoded_payload = sys.argv[2]
+    # mig 13may2024 - Patch by Miguel @ SCONTAIN. Informing Master IP via command line
+    if len(sys.argv) > 3:
+        master_ip_attested = sys.argv[3]
 
     payload = b64str_to_dict(encoded_payload)
     setup_lithops_logger(payload.get('log_level', 'INFO'))
