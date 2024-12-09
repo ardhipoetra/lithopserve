@@ -68,7 +68,7 @@ class JobRunner:
         self.jobrunner_conn = jobrunner_conn
         self.internal_storage = internal_storage
         self.lithops_config = job.config
-
+        self.alive = True
         self.output_key = create_output_key(job.executor_id, job.job_id, job.call_id)
 
         # Setup stats class
@@ -78,6 +78,9 @@ class JobRunner:
         prom_enabled = self.lithops_config['lithops'].get('telemetry')
         prom_config = self.lithops_config.get('prometheus', {})
         self.prometheus = PrometheusExporter(prom_enabled, prom_config)
+
+    def is_alive(self):
+        return self.alive
 
     def _fill_optional_args(self, function, data):
         """
