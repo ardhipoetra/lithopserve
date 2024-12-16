@@ -30,7 +30,7 @@ SCONE_CONFIG_KEYS = {
     'scone_master_requests_cpu': '0.1',
     'scone_master_requests_memory': '384Mi',
     'scone_master_limits_cpu': '2',
-    'scone_master_limits_memory': '2048Mi',
+    'scone_master_limits_memory': '16584Mi',
     'scone_master_limits_sgx': '1',
     'scone_master_heap'            : '1G',
     'scone_master_mode'            : 'AUTO',
@@ -104,8 +104,6 @@ metadata:
     version: lithops_vX.X.X
     user: lithops-user
 spec:
-  # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Doubling the timeouts
-  activeDeadlineSeconds: 1200
   ttlSecondsAfterFinished: 120
   parallelism: 1
   # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Rerun if failed at most 6 times
@@ -190,7 +188,7 @@ spec:
 
 MASTER_CONFIG_RESOURCES = {
     'requests': {'cpu': '1', 'memory': '2096Mi'},
-    'limits': {'cpu': '4', 'memory': '8292Mi', "sgx.k8s.io/sgx": "1"}
+    'limits': {'cpu': '4', 'memory': '24584Mi', "sgx.k8s.io/sgx": "1"}
 }
 
 def load_config(config_data):
