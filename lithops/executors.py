@@ -586,6 +586,8 @@ class FunctionExecutor:
         :param fs: list of futures.
         :param dst: destination path to save .png plots.
         """
+        pass
+    """
         stats_to_plot = self.stats(fs=fs)
         if not stats_to_plot:
             return
@@ -595,7 +597,7 @@ class FunctionExecutor:
         logger.info(f'ExecutorID {self.executor_id} - Creating execution plots')
         create_timeline(stats_to_plot, dst, figsize)
         create_histogram(stats_to_plot, dst, figsize)
-
+"""
     def stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None):
         """
         Returns the stats of the current execution.
@@ -630,10 +632,10 @@ class FunctionExecutor:
 
     def save_stats(self, fs: Optional[Union[ResponseFuture, List[ResponseFuture], FuturesList]] = None, dst: Optional[str] = None):
         """
-        Saves the stats of the current execution in dst.
+        # Saves the stats of the current execution in dst.
 
-        :param fs: list of futures.
-        :param dst: destination path to save .json file.
+        # :param fs: list of futures.
+        # :param dst: destination path to save .json file.
         """
         stats_to_plot = self.stats(fs=fs)
 
