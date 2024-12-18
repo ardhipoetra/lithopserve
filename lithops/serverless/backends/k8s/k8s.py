@@ -65,7 +65,8 @@ class KubernetesBackend:
             context = None if self.kubecfg_context == 'default' else self.kubecfg_context
             load_kube_config(config_file=self.kubecfg_path, context=context)
             contexts, current_context = list_kube_config_contexts(config_file=self.kubecfg_path)
-            current_context = current_context if context is None else [it for it in contexts if it['name'] == context][0]
+            current_context = current_context if context is None else [it for it in contexts if it['name'] == context][
+                0]
             ctx_name = current_context.get('name')
             ctx_context = current_context.get('context')
             self.namespace = ctx_context.get('namespace') or self.namespace
@@ -236,28 +237,56 @@ class KubernetesBackend:
         Deletes a runtime
         """
         job_name_pattern = self._format_job_name(docker_image_name, memory, version)
+
         docker_path = utils.get_docker_path()
         docker_user = self.k8s_config.get("docker_user")
         docker_password = self.k8s_config.get("docker_password")
         docker_server = self.k8s_config.get("docker_server")
+
         if docker_user and docker_password:
             logger.debug('Container registry credentials found in config. Logging in into the registry')
             cmd = f'{docker_path} login -u {docker_user} --password-stdin {docker_server}'
             utils.run_command(cmd, input=docker_password)
-        logger.info(f'Deleting Docker image {docker_image_name} in remote')
-        cmd = f'{docker_path} image rm {docker_image_name}'
+
+        # Remove tag from docker_image_name
+        if ':' in docker_image_name:
+            base_image_name = docker_image_name.split(':')[0]
+            logger.debug(f'Removed tag from Docker image name. Base name: {base_image_name}')
+        else:
+            base_image_name = docker_image_name
+
+        logger.info(f'Deleting Docker image {base_image_name}:latest in remote')
+        cmd = f'{docker_path} image rm {base_image_name}:latest'
         try:
             utils.run_command(cmd)
-            logger.info(f'Removed Docker image {docker_image_name} in remote')
+            logger.info(f'Removed Docker image {base_image_name}:latest in remote')
         except Exception as e:
-            logger.error(f"Failed to delete image: {docker_image_name} in remote")
-        logger.info(f"Deleting runtime: {docker_image_name} locally")
-        cmd = f'{docker_path} rmi {docker_image_name}'
+            logger.error(f"Failed to delete image: {base_image_name}:latest in remote")
+
+        logger.info(f'Deleting extended Docker image {base_image_name}:ext in remote')
+        cmd = f'{docker_path} image rm {base_image_name}:ext'
         try:
             utils.run_command(cmd)
-            logger.info(f'Removed Docker image {docker_image_name} locally')
+            logger.info(f'Removed extended Docker image {base_image_name}:ext in remote')
         except Exception as e:
-            logger.error(f"Failed to delete image: {docker_image_name} locally")
+            logger.error(f"Failed to delete extended image: {base_image_name}:ext in remote")
+
+        logger.info(f"Deleting runtime: {base_image_name}:latest locally")
+        cmd = f'{docker_path} rmi {base_image_name}:latest'
+        try:
+            utils.run_command(cmd)
+            logger.info(f'Removed Docker image {base_image_name}:latest locally')
+        except Exception as e:
+            logger.error(f"Failed to delete image: {base_image_name}:latest locally")
+
+        logger.info(f"Deleting extended runtime: {base_image_name}:ext locally")
+        cmd = f'{docker_path} rmi {base_image_name}:ext'
+        try:
+            utils.run_command(cmd)
+            logger.info(f'Removed extended Docker image {base_image_name}:ext locally')
+        except Exception as e:
+            logger.error(f"Failed to delete extended image: {base_image_name}:ext locally")
+
         # Delete the Kubernetes Deployment
         try:
             logger.debug(f"Deleting job: {job_name_pattern}")
@@ -268,6 +297,7 @@ class KubernetesBackend:
             )
         except ApiException as e:
             logger.error(f"Failed to delete job: {job_name_pattern}. Reason: {str(e)}")
+
         # 2. Delete the container registry secret
         try:
             logger.debug("Deleting container registry secret")
@@ -275,6 +305,17 @@ class KubernetesBackend:
         except ApiException as e:
             if e.status != 404:
                 logger.error(f"Failed to delete secret: lithops-regcred. Reason: {str(e)}")
+
+        key = self.get_runtime_key(docker_image_name, memory, version)
+        self.internal_storage.delete_runtime_meta(key)
+        runtime_meta = self.internal_storage.get_runtime_meta(key)
+
+        logger.info(f"Runtime {docker_image_name} deleted successfully")
+
+        ext_key = self.get_runtime_key(docker_image_name + ":ext", memory, version)
+        self.internal_storage.delete_runtime_meta(ext_key)
+        runtime_meta = self.internal_storage.get_runtime_meta(ext_key)
+        logger.info(f"Runtime {docker_image_name}:ext deleted successfully")
 
     def clean(self, all=False):
         """
@@ -289,8 +330,8 @@ class KubernetesBackend:
                 label_selector=f'user={self.user}'
             )
             for job in jobs.items:
-                if job.metadata.labels['type'] == 'lithops-worker'\
-                   and (job.status.completion_time is not None or all):
+                if job.metadata.labels['type'] == 'lithops-worker' \
+                        and (job.status.completion_time is not None or all):
                     job_name = job.metadata.name
                     logger.debug(f'Deleting job {job_name}')
                     try:
@@ -362,7 +403,7 @@ class KubernetesBackend:
         master_res['metadata']['labels']['version'] = 'lithops_v' + __version__
         master_res['metadata']['labels']['user'] = self.user
         master_res['spec']['template']['spec']['containers'][0]['resources'] = config.MASTER_CONFIG_RESOURCES
-        
+
         container = master_res['spec']['template']['spec']['containers'][0]
         container['image'] = docker_image_name
         container['env'][0]['value'] = 'run_master'
