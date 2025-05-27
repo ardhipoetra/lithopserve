@@ -316,3 +316,4 @@ class JobRunner:
                 self.stats.write("worker_result_upload_time", round(output_upload_end_tstamp - output_upload_start_tstamp, 8))
             self.jobrunner_conn.send("Finished")
             logger.info("Process finished")
+            self.alive = False
