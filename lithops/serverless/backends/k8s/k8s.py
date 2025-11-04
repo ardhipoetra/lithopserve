@@ -423,10 +423,10 @@ class KubernetesBackend:
         container['env'][8]['value'] =  str(self.k8s_config['scone_master_syslibs'])
         container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
         container['env'][10]['value'] =  str(self.k8s_config['scone_las_addr'])
-        # if str(self.k8s_config['scone_config_id']) == '':
-        #     del container['env'][11]
-        # else:
-        #     container['env'][11]['value'] = str(self.k8s_config['scone_config_id'])
+        if str(self.k8s_config['scone_config']) == '':
+            del container['env'][12]
+        else:
+            container['env'][12]['value'] = str(self.k8s_config['scone_config'])
 
         if not all(key in self.k8s_config for key in ["docker_user", "docker_password"]):
             del master_res['spec']['template']['spec']['imagePullSecrets']
@@ -497,10 +497,10 @@ class KubernetesBackend:
         container['env'][8]['value'] =  str(self.k8s_config['scone_worker_syslibs'])
         container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
         container['env'][10]['value']  = str(self.k8s_config['scone_las_addr'])
-        # if str(self.k8s_config['scone_config_id']) == '':
-        #     del container['env'][10]
-        # else:
-        #     container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
+        if str(self.k8s_config['scone_config']) == '':
+            del container['env'][12]
+        else:
+            container['env'][12]['value'] = str(self.k8s_config['scone_config'])
         # container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
 
         logger.debug(f'Value from str(self.k8s_config[scone_worker_heap])='+str(self.k8s_config['scone_worker_heap']))
@@ -510,11 +510,11 @@ class KubernetesBackend:
         logger.debug(f'Value from str(self.k8s_config[scone_worker_syslibs])='+str(self.k8s_config['scone_worker_syslibs']))
         logger.debug(f'Value from str(self.k8s_config[scone_cas_addr])='+str(self.k8s_config['scone_cas_addr']))
         logger.debug(f'Value from str(self.k8s_config[scone_las_addr])='+str(self.k8s_config['scone_las_addr']))
-        # logger.debug(f'Value from str(self.k8s_config[scone_config_id])='+str(self.k8s_config['scone_config_id']))
+        logger.debug(f'Value from str(self.k8s_config[scone_config])='+str(self.k8s_config['scone_config']))
         logger.debug(f'Value from str(self.k8s_config[k8s_master_ip])='+str(self.k8s_config['k8s_master_ip']))
 
         # mig 09may2024 - Patch by Miguel @ SCONTAIN. Changed source of values to avoid misplacement
-        container['resources']['requests']['memory'] = str(self.k8s_config['scone_worker_requests_memory']) # f'{runtime_memory}Mi'
+        container['resources']['requests']['memory'] = str(self.k8s_config['scone_worker_requests_memory'])+'Mi' # f'{runtime_memory}Mi'
         container['resources']['requests']['cpu'] = str(self.k8s_config['scone_worker_requests_cpu']) # str(self.k8s_config['runtime_cpu'])
         container['resources']['limits']['memory'] = str(self.k8s_config['scone_worker_limits_memory']) # f'{runtime_memory}Mi'
         container['resources']['limits']['cpu'] = str(self.k8s_config['scone_worker_limits_cpu']) # str(self.k8s_config['runtime_cpu'])
@@ -570,10 +570,10 @@ class KubernetesBackend:
         container['env'][8]['value'] =  str(self.k8s_config['scone_master_syslibs'])
         container['env'][9]['value'] =  str(self.k8s_config['scone_cas_addr'])
         container['env'][10]['value'] =  str(self.k8s_config['scone_las_addr'])
-        # if str(self.k8s_config['scone_config_id']) == '':
-        #     del container['env'][10]
-        # else:
-        #     container['env'][10]['value'] = str(self.k8s_config['scone_config_id'])
+        if str(self.k8s_config['scone_config']) == '':
+            del container['env'][12]
+        else:
+            container['env'][12]['value'] = str(self.k8s_config['scone_config'])
 
         if not all(key in self.k8s_config for key in ["docker_user", "docker_password"]):
             del job_res['spec']['template']['spec']['imagePullSecrets']

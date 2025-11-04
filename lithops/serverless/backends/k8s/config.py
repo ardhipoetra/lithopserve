@@ -49,7 +49,7 @@ SCONE_CONFIG_KEYS = {
     'scone_worker_syslibs'         : '1',
     'scone_cas_addr'        : '172.20.0.1',
     'scone_las_addr'        : '172.20.0.1',
-    'scone_config_id'       : '',
+    'scone_config'       : '/etc/sgx-musl.conf',
     'k8s_master_ip'   : '0.0.0.0'
 }
 
@@ -147,9 +147,9 @@ spec:
             - name: SCONE_LAS_ADDR
               value: '172.20.0.1'
             - name: SCONE_EDMM_MODE
-              value: 'enable'
-            # - name: SCONE_CONFIG_ID_TEST
-            #   value: 'Lithops-Benchmark-D41-123-45678-90120/benchmark'
+              value: 'disable'
+            - name: SCONE_CONFIG
+              value: '/etc/sgx-musl.conf'
           resources:
             # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Increased initial memory and cpu and memory limits
               requests:
