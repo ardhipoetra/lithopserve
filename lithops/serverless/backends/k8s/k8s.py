@@ -459,7 +459,8 @@ class KubernetesBackend:
         # master_res['spec']['activeDeadlineSeconds'] = self.k8s_config['master_timeout']
 
         container = master_res['spec']['template']['spec']['containers'][0]
-        container['image'] = docker_image_name
+        container['image'] = docker_image_name+'master'
+        logger.info('Using master image: '+container['image'])
         container['env'][0]['value'] = 'run_master'
 
         payload = {'log_level': 'DEBUG'}
