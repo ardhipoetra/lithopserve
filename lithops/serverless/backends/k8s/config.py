@@ -26,6 +26,34 @@ DEFAULT_CONFIG_KEYS = {
     'docker_server': 'docker.io'
 }
 
+# mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+SCONE_CONFIG_KEYS = {
+    'scone_master_requests_cpu': '0.1',
+    'scone_master_requests_memory': '384Mi',
+    'scone_master_limits_cpu': '2',
+    'scone_master_limits_memory': '16584Mi',
+    'scone_master_limits_sgx': '1',
+    'scone_master_heap'            : '1G',
+    'scone_master_mode'            : 'AUTO',
+    'scone_master_allow_dl_open'   : '2',
+    'scone_master_fork'            : '1',
+    'scone_master_syslibs'         : '1',
+    'scone_worker_requests_cpu': '0.1',
+    'scone_worker_requests_memory': '768Mi',
+    'scone_worker_limits_cpu': '2',
+    'scone_worker_limits_memory': '2048Mi',
+    'scone_worker_limits_sgx': '1',
+    'scone_worker_heap'            : '512M',
+    'scone_worker_mode'            : 'AUTO',
+    'scone_worker_allow_dl_open'   : '2',
+    'scone_worker_fork'            : '1',
+    'scone_worker_syslibs'         : '1',
+    'scone_cas_addr'        : '172.20.0.1',
+    'scone_las_addr'        : '172.20.0.1',
+    'scone_config'       : '/etc/sgx-musl.conf',
+    'k8s_master_ip'   : '0.0.0.0'
+}
+
 DEFAULT_GROUP = "batch"
 DEFAULT_VERSION = "v1"
 MASTER_NAME = "lithops-master"
@@ -54,8 +82,7 @@ RUN pip install --upgrade --ignore-installed setuptools six pip \
         numpy \
         cloudpickle \
         ps-mem \
-        tblib \
-        psutil
+        tblib
 
 ENV PYTHONUNBUFFERED TRUE
 
@@ -78,10 +105,10 @@ metadata:
     version: lithops_vX.X.X
     user: lithops-user
 spec:
-  activeDeadlineSeconds: 600
-  ttlSecondsAfterFinished: 60
+  ttlSecondsAfterFinished: 120
   parallelism: 1
-  backoffLimit: 0
+  # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Rerun if failed at most 6 times
+  backoffLimit: 6
   template:
     spec:
       restartPolicy: Never
@@ -105,13 +132,39 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+              # mig 14apr2024 - Patch by Miguel @ SCONTAIN. SCONE related variables
+            - name: SCONE_HEAP
+              value: '768M'
+            - name: SCONE_MODE
+              value: 'AUTO'
+            - name: SCONE_ALLOW_DLOPEN
+              value: '2'
+            - name: SCONE_FORK
+              value: '1'
+            - name: SCONE_SYSLIBS
+              value: '1'
+            - name: SCONE_CAS_ADDR
+              value: '172.20.0.1'
+            - name: SCONE_LAS_ADDR
+              value: '172.20.0.1'
+            - name: SCONE_EDMM_MODE
+              value: 'disable'
+            - name: SCONE_CONFIG
+              value: '/etc/sgx-musl.conf'
+            - name: SCONE_LOG
+              value: 'ERROR'
           resources:
-            requests:
-              cpu: '0.2'
-              memory: 128Mi
-            limits:
-              cpu: '0.2'
-              memory: 128Mi
+            # mig 14apr2024 - Patch by Miguel @ SCONTAIN. Increased initial memory and cpu and memory limits
+              requests:
+                cpu: '2'
+                memory: 2048Mi
+              limits:
+                cpu: '8'
+                memory: 8192Mi
+                sgx.k8s.io/sgx: "1"
+          securityContext:
+            capabilities:
+              add: ["SYS_RAWIO"]
       imagePullSecrets:
         - name: lithops-regcred
 """
@@ -136,6 +189,11 @@ spec:
           memory: '512Mi'
 """
 
+MASTER_CONFIG_RESOURCES = {
+    'requests': {'cpu': '1', 'memory': '2096Mi'},
+    'limits': {'cpu': '4', 'memory': '24584Mi', "sgx.k8s.io/sgx": "1"}
+}
+
 
 def load_config(config_data):
     for key in DEFAULT_CONFIG_KEYS:
@@ -150,3 +208,8 @@ def load_config(config_data):
 
     if config_data['k8s'].get('rabbitmq_executor', False):
         config_data['k8s']['amqp_url'] = config_data['rabbitmq']['amqp_url']
+
+    # mig 09may2024 - Patch by Miguel @ SCONTAIN. New SCONE related configuration
+    for key in SCONE_CONFIG_KEYS:
+        if key not in config_data['k8s']:
+            config_data['k8s'][key] = SCONE_CONFIG_KEYS[key]
